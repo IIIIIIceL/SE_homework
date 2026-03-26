@@ -95,7 +95,7 @@
 - 年级：大三  
 - 学校：华中师范大学  
 - 邮箱：485266452@qq.com
-- 头像：![mmexport1693576570765](together/DEMO/image.jpg)
+- 头像：![mmexport1693576570765](./im/image.jpg)
 
 ---
 
