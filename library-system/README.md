@@ -1,16 +1,50 @@
-# React + Vite
+# Library System (Modular, Frontend/Backend Separated)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Structure
 
-Currently, two official plugins are available:
+- `server`: backend service (Express)
+  - Reader module: register, update, query, cancel
+  - Loan module: reader loan history and return toggle
+  - Book module: list/create/update/discard/status
+  - Category module: hierarchical category CRUD
+  - Circulation module: borrow/return/loan list
+  - Reports module: overview and hot books
+  - System module: users/roles/backup skeleton
+- `borrower`: borrower-side frontend (React + Vite)
+  - `modules/readers`: reader center module
+  - `modules/shared`: shared request layer
+- `admin`: admin-side frontend (React + Vite, menu skeleton)
+  - `modules/books`: books and categories management module
+  - `modules/shared`: shared request layer
+- root `package.json`: unified shortcut scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run Steps
 
-## React Compiler
+1. Install backend dependencies:
+   - `cd server`
+   - `npm install`
+2. Install borrower dependencies:
+   - `cd ../borrower`
+   - `npm install`
+3. Install admin dependencies:
+   - `cd ../admin`
+   - `npm install`
+4. Start backend:
+   - `cd ../`
+   - `npm run dev:server`
+5. Start borrower frontend:
+   - `npm run dev:borrower`
+6. Start admin frontend:
+   - `npm run dev:admin`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Default ports:
+- Backend: `http://localhost:3000`
+- Borrower frontend: `http://localhost:5173`
+- Admin frontend: `http://localhost:5174` (if 5173 is occupied)
 
-## Expanding the ESLint configuration
+## Core Business Rules Implemented
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- ID number must be unique.
+- Card number is generated automatically (`LIB000001` ...).
+- Reader can be cancelled only when no unreturned books exist.
+- Loan history can be queried by reader card number.
