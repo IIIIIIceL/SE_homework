@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  username     String     @unique
+  passwordHash String
+  fullName     String
+  roleId       Int
+  status       String     @default("ACTIVE")
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  role          Role           @relation(fields: [roleId], references: [id])
+  borrowRecords BorrowRecord[] @relation("BorrowOperator")
+  returnRecords BorrowRecord[] @relation("ReturnOperator")
+  logs          OperationLog[]
+
+  @@index([roleId])
+  @@index([status])
+  @@map("users")
+}
+
+model Reader {
+  id             Int          @id @default(autoincrement())
+  readerNo       String       @unique
+  name           String
+  gender         String       @default("UNKNOWN")
+  phone          String?
+  email          String?
+  department     String?
+  className      String?
+  maxBorrowCount Int          @default(5)
+  status         String       @default("ACTIVE")
+  remark         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  borrowRecords BorrowRecord[]
+
+  @@index([name])
+  @@index([status])
+  @@map("readers")
+}
+
+model Category {
+  id       Int     @id @default(autoincrement())
+  name     String
+  parentId Int?
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  books    Book[]
+
+  @@unique([name, parentId])
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Publisher {
+  id      Int     @id @default(autoincrement())
+  name    String  @unique
+  phone   String?
+  email   String?
+  address String?
+
+  books Book[]
+
+  @@map("publishers")
+}
+
+model Book {
+  id              Int        @id @default(autoincrement())
+  isbn            String     @unique
+  title           String
+  author          String
+  translator      String?
+  categoryId      Int?
+  publisherId     Int?
+  publishDate     DateTime?
+  price           Float?
+  totalCopies     Int        @default(0)
+  availableCopies Int        @default(0)
+  location        String?
+  keywords        String?
+  summary         String?
+  status          String     @default("AVAILABLE")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  category      Category?      @relation(fields: [categoryId], references: [id])
+  publisher     Publisher?     @relation(fields: [publisherId], references: [id])
+  borrowRecords BorrowRecord[]
+
+  @@index([title])
+  @@index([author])
+  @@index([categoryId])
+  @@index([publisherId])
+  @@index([status])
+  @@map("books")
+}
+
+model BorrowRecord {
+  id               Int          @id @default(autoincrement())
+  borrowNo         String       @unique
+  readerId         Int
+  bookId           Int
+  borrowDate       DateTime     @default(now())
+  dueDate          DateTime
+  returnDate       DateTime?
+  renewCount       Int          @default(0)
+  status           String       @default("BORROWED")
+  fineAmount       Float        @default(0)
+  operatorBorrowId Int?
+  operatorReturnId Int?
+  remark           String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  reader         Reader @relation(fields: [readerId], references: [id])
+  book           Book   @relation(fields: [bookId], references: [id])
+  borrowOperator User?  @relation("BorrowOperator", fields: [operatorBorrowId], references: [id])
+  returnOperator User?  @relation("ReturnOperator", fields: [operatorReturnId], references: [id])
+
+  @@index([readerId])
+  @@index([bookId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([borrowDate])
+  @@map("borrow_records")
+}
+
+model OperationLog {
+  id         Int      @id @default(autoincrement())
+  userId      Int?
+  action      String
+  targetType  String?
+  targetId    String?
+  detail      String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("operation_logs")
+}
