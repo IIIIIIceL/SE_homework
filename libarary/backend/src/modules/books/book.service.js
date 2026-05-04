@@ -1,7 +1,7 @@
 const { prisma } = require('../../config/database');
-const bookRepository = require('../../repositories/bookRepository');
-const { normalizeBookInput, normalizeBookQuery } = require('../../DTO/book.dto');
-const { toBookListVO, toBookVO } = require('../../VO/book.vo');
+const bookRepository = require('./book.repository');
+const { normalizeBookInput, normalizeBookQuery } = require('./dto/book.dto');
+const { toBookListVO, toBookVO } = require('./vo/book.vo');
 
 const BOOK_STATUSES = new Set(['AVAILABLE', 'OFF_SHELF']);
 
