@@ -32,10 +32,26 @@ class ReaderService {
     });
   }
 
-  async updateReader(id, readerData) {
+  async updateReader(id, updateData) {
     const reader = await Reader.findByPk(id);
     if (!reader) return null;
-    return reader.update(readerData);
+
+    // 只允许更新联系方式字段
+    const allowedFields = ['phone', 'email', 'address'];
+    const filteredData = {};
+
+    // 验证手机号格式
+    if (updateData.phone && !/^[0-9]{11}$/.test(updateData.phone)) {
+      throw new Error('手机号码格式不正确');
+    }
+
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        filteredData[field] = updateData[field];
+      }
+    }
+
+    return reader.update(filteredData);
   }
 
   async deleteReader(id) {
