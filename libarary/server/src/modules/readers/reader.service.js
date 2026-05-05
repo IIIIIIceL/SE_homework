@@ -73,8 +73,13 @@ class ReaderService {
 
   // 预留接口 - 后续与借阅模块集成
   async getBorrowingHistory(readerId) {
-    // TODO: 与circulation模块集成
-    throw new Error('Not implemented yet - will integrate with circulation module');
+    try {
+      const circulationService = require('../circulation/circulation.service');
+      return circulationService.getBorrowingHistoryByReaderId(readerId);
+    } catch (error) {
+      // TODO: circulation模块实现后移除容错
+      return [];
+    }
   }
 }
 

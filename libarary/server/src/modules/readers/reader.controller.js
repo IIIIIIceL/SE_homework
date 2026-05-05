@@ -37,6 +37,15 @@ class ReaderController {
     }
   }
 
+  async getBorrowingHistory(req, res) {
+    try {
+      const history = await readerService.getBorrowingHistory(req.params.id);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   async updateReader(req, res) {
     try {
       const reader = await readerService.updateReader(req.params.id, req.body);
