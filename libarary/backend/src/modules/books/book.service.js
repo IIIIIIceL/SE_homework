@@ -144,6 +144,45 @@ async function deleteBook(bookId) {
   return toBookVO(await bookRepository.remove(id));
 }
 
+  async searchBooks(queryParams) {
+    const { title, author, isbn, category } = queryParams;
+    const where = {};
+
+    if (title) {
+      where.title = { contains: title, mode: 'insensitive' };
+    }
+    if (author) {
+      where.author = { contains: author, mode: 'insensitive' };
+    }
+    if (isbn) {
+      where.isbn = { contains: isbn, mode: 'insensitive' };
+    }
+    if (category) {
+      where.category = { name: { contains: category, mode: 'insensitive' } };
+    }
+
+    const params = {
+      ...queryParams,
+      where,
+      includeCategory: !!category
+    };
+
+    const [items, total] = await Promise.all([
+      bookRepository.list(params),
+      bookRepository.count(params)
+    ]);
+
+    return {
+      data: toBookListVO(items),
+      pagination: {
+        page: params.page,
+        pageSize: params.pageSize,
+        total,
+        totalPages: Math.ceil(total / params.pageSize)
+      }
+    };
+  }
+
 async function updateBookStatus(bookId, status) {
   const id = Number(bookId);
   if (Number.isNaN(id)) {
