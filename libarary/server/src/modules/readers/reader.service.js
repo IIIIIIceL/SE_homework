@@ -2,7 +2,21 @@ const { Reader } = require('../../models');
 
 class ReaderService {
   async createReader(readerData) {
+    // 校验证件号唯一性
+    const existing = await Reader.findOne({ where: { idNumber: readerData.idNumber } });
+    if (existing) {
+      throw new Error('证件号已存在');
+    }
+
+    // 生成借阅证号
+    readerData.borrowCardNumber = this.generateBorrowCardNumber();
+
     return Reader.create(readerData);
+  }
+
+  generateBorrowCardNumber() {
+    // 生成借阅证号：B + 时间戳
+    return `B${Date.now()}`;
   }
 
   async getReaderById(id) {
