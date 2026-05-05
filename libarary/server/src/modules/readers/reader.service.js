@@ -57,6 +57,16 @@ class ReaderService {
   async deleteReader(id) {
     const reader = await Reader.findByPk(id);
     if (!reader) return false;
+
+    // 先清除借阅记录（调用circulation模块）
+    try {
+      const circulationService = require('../circulation/circulation.service');
+      await circulationService.deleteBorrowingHistoryByReaderId(id);
+    } catch (error) {
+      // TODO: circulation模块实现后应严格处理错误
+      console.error('无法清除借阅记录:', error.message);
+    }
+
     await reader.destroy();
     return true;
   }
