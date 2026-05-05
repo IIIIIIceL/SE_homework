@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv d:/SE_homework/libarary/server/* d:/SE_homework/libarary/backend/ && rmdir d:/SE_homework/libarary/server)",
+      "Bash(git add *)",
+      "Bash(git rm *)",
+      "Bash(git commit -m ' *)"
+    ],
+    "additionalDirectories": [
+      "d:\\SE_homework\\libarary\\server"
+    ]
+  }
+}
