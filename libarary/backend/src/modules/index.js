@@ -1,9 +1,12 @@
-const bookRoutes = require('./books/book.routes');
+const express = require('express');
+const router = express.Router();
 
-function registerModules(app) {
-  app.use('/api/books', bookRoutes);
-}
+// 现有模块
+router.use('/books', require('./books/book.routes'));
+router.use('/categories', require('./categories/category.routes'));
+router.use('/circulation', require('./circulation/circulation.routes'));
 
-module.exports = {
-  registerModules
-};
+// 新增读者模块
+router.use('/readers', require('./readers/reader.routes'));
+
+module.exports = router;
