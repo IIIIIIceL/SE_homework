@@ -32,6 +32,11 @@ function handleError(res, error) {
   }
 }
 
+function getOperatorId(req) {
+  const userId = req && req.user ? Number(req.user.id) : NaN;
+  return Number.isNaN(userId) ? null : userId;
+}
+
 /**
  * 获取借阅记录列表
  */
@@ -61,8 +66,7 @@ async function getBorrowById(req, res) {
  */
 async function createBorrow(req, res) {
   try {
-    // TODO: 从请求上下文获取当前操作员ID
-    const operatorId = req.user?.id || null;
+    const operatorId = getOperatorId(req);
     const result = await borrowBook(req.body, operatorId);
     res.status(201).json({ data: result });
   } catch (error) {
@@ -75,8 +79,7 @@ async function createBorrow(req, res) {
  */
 async function doReturn(req, res) {
   try {
-    // TODO: 从请求上下文获取当前操作员ID
-    const operatorId = req.user?.id || null;
+    const operatorId = getOperatorId(req);
     const result = await returnBook(req.params.borrowId, req.body, operatorId);
     res.json({ data: result });
   } catch (error) {

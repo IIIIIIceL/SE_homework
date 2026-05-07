@@ -7,6 +7,7 @@ const {
   doRenew,
   getOverdue
 } = require('./borrow.controller');
+const { authMiddleware } = require('../../common/middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -20,12 +21,12 @@ router.get('/', getBorrows);
 router.get('/:borrowId', getBorrowById);
 
 // 创建借阅记录（借出图书）
-router.post('/', createBorrow);
+router.post('/', authMiddleware, createBorrow);
 
 // 归还图书
-router.post('/:borrowId/return', doReturn);
+router.post('/:borrowId/return', authMiddleware, doReturn);
 
 // 续期
-router.post('/:borrowId/renew', doRenew);
+router.post('/:borrowId/renew', authMiddleware, doRenew);
 
 module.exports = router;
