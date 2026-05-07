@@ -15,4 +15,15 @@ router.use('/borrows', require('./borrows/borrow.routes'));
 // 新增系统管理模块
 router.use('/system', require('./system/system.routes'));
 
-module.exports = router;
+// 新增认证模块
+router.use('/auth', require('./auth/auth.routes'));
+
+// registerModules 函数用于在 Express app 中注册所有模块路由
+function registerModules(app) {
+  app.use('/api', router);
+}
+
+module.exports = {
+  registerModules,
+  router
+};
