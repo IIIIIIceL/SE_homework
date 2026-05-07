@@ -3,6 +3,7 @@ const {
   deleteBook,
   getBook,
   listBooks,
+  searchBooks,
   updateBook,
   updateBookStatus
 } = require('./book.service');
@@ -73,14 +74,14 @@ async function deleteBookById(req, res) {
   }
 }
 
-  async searchBooks(req, res) {
-    try {
-      const results = await bookService.searchBooks(req.query);
-      res.json(results);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  },
+async function searchBooksHandler(req, res) {
+  try {
+    const result = await searchBooks(req.query);
+    res.json(result);
+  } catch (error) {
+    handleError(res, error);
+  }
+}
 
 async function patchBookStatus(req, res) {
   try {
@@ -97,5 +98,6 @@ module.exports = {
   postBook,
   putBook,
   deleteBookById,
-  patchBookStatus
+  patchBookStatus,
+  searchBooks: searchBooksHandler
 };

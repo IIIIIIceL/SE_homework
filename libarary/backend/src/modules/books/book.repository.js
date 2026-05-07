@@ -17,24 +17,52 @@ const bookInclude = {
 };
 
 function buildWhere(params = {}) {
-  const { keyword, status } = params;
-  const where = {};
+  const { keyword, status, title, author, isbn, category } = params;
+  const andClauses = [];
 
   if (status && status !== 'ALL') {
-    where.status = status;
+    andClauses.push({ status });
   }
 
   if (keyword && String(keyword).trim()) {
     const search = String(keyword).trim();
-    where.OR = [
-      { title: { contains: search } },
-      { author: { contains: search } },
-      { isbn: { contains: search } },
-      { keywords: { contains: search } }
-    ];
+    andClauses.push({
+      OR: [
+        { title: { contains: search } },
+        { author: { contains: search } },
+        { isbn: { contains: search } },
+        { keywords: { contains: search } }
+      ]
+    });
   }
 
-  return where;
+  if (title) {
+    andClauses.push({ title: { contains: title } });
+  }
+
+  if (author) {
+    andClauses.push({ author: { contains: author } });
+  }
+
+  if (isbn) {
+    andClauses.push({ isbn: { contains: isbn } });
+  }
+
+  if (category) {
+    andClauses.push({
+      category: {
+        is: {
+          name: { contains: category }
+        }
+      }
+    });
+  }
+
+  if (andClauses.length === 0) {
+    return {};
+  }
+
+  return { AND: andClauses };
 }
 
 const bookRepository = {
@@ -75,6 +103,20 @@ const bookRepository = {
 
   count(params = {}) {
     return prisma.book.count({ where: buildWhere(params) });
+  },
+
+  search(params = {}) {
+    const { page = 1, pageSize = 10 } = params;
+    const skip = (page - 1) * pageSize;
+    const where = buildWhere(params);
+
+    return prisma.book.findMany({
+      where,
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: 'desc' },
+      include: bookInclude
+    });
   },
 
   update(id, data) {
