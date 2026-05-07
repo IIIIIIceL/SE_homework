@@ -41,9 +41,22 @@ function normalizeBookQuery(query = {}) {
   };
 }
 
+function normalizeBookSearchQuery(query = {}) {
+  return {
+    title: String(query.title || '').trim(),
+    author: String(query.author || '').trim(),
+    isbn: String(query.isbn || '').trim(),
+    category: String(query.category || '').trim(),
+    status: String(query.status || 'ALL').trim().toUpperCase(),
+    page: Math.max(1, toNumber(query.page, 1)),
+    pageSize: Math.max(1, Math.min(100, toNumber(query.pageSize, 10)))
+  };
+}
+
 module.exports = {
   normalizeBookInput,
   normalizeBookQuery,
+  normalizeBookSearchQuery,
   toNumber,
   toDate
 };

@@ -1,6 +1,10 @@
 const { prisma } = require('../../config/database');
 const bookRepository = require('./book.repository');
-const { normalizeBookInput, normalizeBookQuery } = require('./dto/book.dto');
+const {
+  normalizeBookInput,
+  normalizeBookQuery,
+  normalizeBookSearchQuery
+} = require('./dto/book.dto');
 const { toBookListVO, toBookVO } = require('./vo/book.vo');
 
 const BOOK_STATUSES = new Set(['AVAILABLE', 'OFF_SHELF']);
@@ -52,6 +56,24 @@ async function listBooks(query) {
   const params = normalizeBookQuery(query);
   const [items, total] = await Promise.all([
     bookRepository.list(params),
+    bookRepository.count(params)
+  ]);
+
+  return {
+    data: toBookListVO(items),
+    pagination: {
+      page: params.page,
+      pageSize: params.pageSize,
+      total,
+      totalPages: Math.ceil(total / params.pageSize)
+    }
+  };
+}
+
+async function searchBooks(query) {
+  const params = normalizeBookSearchQuery(query);
+  const [items, total] = await Promise.all([
+    bookRepository.search(params),
     bookRepository.count(params)
   ]);
 
@@ -144,45 +166,6 @@ async function deleteBook(bookId) {
   return toBookVO(await bookRepository.remove(id));
 }
 
-  async searchBooks(queryParams) {
-    const { title, author, isbn, category } = queryParams;
-    const where = {};
-
-    if (title) {
-      where.title = { contains: title, mode: 'insensitive' };
-    }
-    if (author) {
-      where.author = { contains: author, mode: 'insensitive' };
-    }
-    if (isbn) {
-      where.isbn = { contains: isbn, mode: 'insensitive' };
-    }
-    if (category) {
-      where.category = { name: { contains: category, mode: 'insensitive' } };
-    }
-
-    const params = {
-      ...queryParams,
-      where,
-      includeCategory: !!category
-    };
-
-    const [items, total] = await Promise.all([
-      bookRepository.list(params),
-      bookRepository.count(params)
-    ]);
-
-    return {
-      data: toBookListVO(items),
-      pagination: {
-        page: params.page,
-        pageSize: params.pageSize,
-        total,
-        totalPages: Math.ceil(total / params.pageSize)
-      }
-    };
-  }
-
 async function updateBookStatus(bookId, status) {
   const id = Number(bookId);
   if (Number.isNaN(id)) {
@@ -204,6 +187,7 @@ async function updateBookStatus(bookId, status) {
 
 module.exports = {
   listBooks,
+  searchBooks,
   getBook,
   createBook,
   updateBook,
