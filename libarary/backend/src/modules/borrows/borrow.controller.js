@@ -58,10 +58,10 @@ async function getBorrowById(req, res) {
 
 /**
  * 创建借阅记录（借出图书）
- * 需要在请求中包含 user 信息（来自认证中间件）
  */
 async function createBorrow(req, res) {
   try {
+    // TODO: 从请求上下文获取当前操作员ID
     const operatorId = req.user?.id || null;
     const result = await borrowBook(req.body, operatorId);
     res.status(201).json({ data: result });
@@ -72,10 +72,10 @@ async function createBorrow(req, res) {
 
 /**
  * 归还图书
- * 需要在请求中包含 user 信息（来自认证中间件）
  */
 async function doReturn(req, res) {
   try {
+    // TODO: 从请求上下文获取当前操作员ID
     const operatorId = req.user?.id || null;
     const result = await returnBook(req.params.borrowId, req.body, operatorId);
     res.json({ data: result });

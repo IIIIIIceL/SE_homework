@@ -13,6 +13,15 @@ const {
   putUser,
   deleteUserById,
   patchUserStatus,
+  restoreUserById,
+  // 密码管理
+  changeUserPassword,
+  resetUserPassword,
+  // 用户验证
+  validateUserLogin,
+  // 系统统计
+  getStats,
+  getLogStats,
   // 操作日志
   getLogs,
   getLogById,
@@ -36,6 +45,18 @@ router.post('/users', postUser);
 router.put('/users/:userId', putUser);
 router.delete('/users/:userId', deleteUserById);
 router.patch('/users/:userId/status', patchUserStatus);
+router.post('/users/:userId/restore', restoreUserById);
+
+// ==================== 密码管理路由 ====================
+router.post('/users/:userId/password/change', changeUserPassword);
+router.post('/users/:userId/password/reset', resetUserPassword);
+
+// ==================== 用户验证路由 ====================
+router.post('/validate', validateUserLogin);
+
+// ==================== 系统统计路由 ====================
+router.get('/stats', getStats);
+router.get('/logs/stats', getLogStats);
 
 // ==================== 操作日志路由 ====================
 router.get('/logs', getLogs);

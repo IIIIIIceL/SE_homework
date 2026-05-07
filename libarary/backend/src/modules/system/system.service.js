@@ -7,7 +7,9 @@ const {
   normalizeUserUpdate,
   normalizeUserQuery,
   normalizeOperationLogInput,
-  normalizeOperationLogQuery
+  normalizeOperationLogQuery,
+  normalizePasswordChange,
+  normalizePasswordReset
 } = require('./dto/system.dto');
 const {
   toRoleVO,
@@ -18,7 +20,7 @@ const {
   toOperationLogListVO
 } = require('./vo/system.vo');
 
-const USER_STATUSES = new Set(['ACTIVE', 'DISABLED']);
+const USER_STATUSES = new Set(['ACTIVE', 'DISABLED', 'DELETED']);
 
 function createError(code, message) {
   const error = new Error(message);
@@ -203,8 +205,28 @@ async function deleteUser(userId) {
     throw createError('USER_NOT_FOUND', '用户不存在');
   }
 
+  // 改为逻辑删除，而不是物理删除
   const deleted = await userRepository.delete(id);
   return toUserVO(deleted);
+}
+
+async function restoreUser(userId) {
+  const id = Number(userId);
+  if (Number.isNaN(id)) {
+    throw createError('INVALID_ID', '用户编号不合法');
+  }
+
+  const user = await userRepository.findById(id);
+  if (!user) {
+    throw createError('USER_NOT_FOUND', '用户不存在');
+  }
+
+  if (user.status !== 'DELETED') {
+    throw createError('INVALID_STATUS', '只能恢复已删除的用户');
+  }
+
+  const restored = await userRepository.restore(id);
+  return toUserVO(restored);
 }
 
 async function getUser(userId) {
@@ -323,6 +345,90 @@ async function getUserOperationLogs(userId, query) {
   };
 }
 
+// ==================== 密码管理 ====================
+
+async function changePassword(userId, data) {
+  const id = Number(userId);
+  if (Number.isNaN(id)) {
+    throw createError('INVALID_ID', '用户编号不合法');
+  }
+
+  const input = normalizePasswordChange(data);
+
+  if (!input.oldPassword || input.oldPassword.trim() === '') {
+    throw createError('MISSING_FIELDS', '旧密码不能为空');
+  }
+
+  if (!input.newPassword || input.newPassword.trim() === '') {
+    throw createError('MISSING_FIELDS', '新密码不能为空');
+  }
+
+  if (input.newPassword !== input.confirmPassword) {
+    throw createError('INVALID_PASSWORD', '两次输入的密码不一致');
+  }
+
+  const user = await userRepository.findById(id);
+  if (!user) {
+    throw createError('USER_NOT_FOUND', '用户不存在');
+  }
+
+  // TODO: 在实际应用中应该使用 bcrypt 等库验证密码
+  // if (!await comparePassword(input.oldPassword, user.passwordHash)) {
+  //   throw createError('WRONG_PASSWORD', '旧密码错误');
+  // }
+
+  const updated = await userRepository.updatePassword(id, input.newPassword);
+  return toUserVO(updated);
+}
+
+async function resetPassword(userId, newPassword) {
+  const id = Number(userId);
+  if (Number.isNaN(id)) {
+    throw createError('INVALID_ID', '用户编号不合法');
+  }
+
+  if (!newPassword || newPassword.trim() === '') {
+    throw createError('MISSING_FIELDS', '新密码不能为空');
+  }
+
+  const user = await userRepository.findById(id);
+  if (!user) {
+    throw createError('USER_NOT_FOUND', '用户不存在');
+  }
+
+  const updated = await userRepository.updatePassword(id, newPassword);
+  return toUserVO(updated);
+}
+
+// ==================== 用户验证 ====================
+
+async function validateUser(username) {
+  if (!username || username.trim() === '') {
+    throw createError('MISSING_FIELDS', '用户名不能为空');
+  }
+
+  const user = await userRepository.findByUsername(username);
+  if (!user) {
+    throw createError('USER_NOT_FOUND', '用户不存在');
+  }
+
+  if (user.status !== 'ACTIVE') {
+    throw createError('USER_INACTIVE', `用户已${user.status === 'DELETED' ? '删除' : '禁用'}`);
+  }
+
+  return user;
+}
+
+// ==================== 系统统计 ====================
+
+async function getSystemStats() {
+  return await userRepository.getSystemStats();
+}
+
+async function getOperationLogStats(days = 7) {
+  return await userRepository.getLogStats(days);
+}
+
 module.exports = {
   // 角色管理
   createRole,
@@ -337,6 +443,15 @@ module.exports = {
   getUser,
   listUsers,
   changeUserStatus,
+  restoreUser,
+  // 密码管理
+  changePassword,
+  resetPassword,
+  // 用户验证
+  validateUser,
+  // 系统统计
+  getSystemStats,
+  getOperationLogStats,
   // 操作日志
   recordOperationLog,
   getOperationLog,

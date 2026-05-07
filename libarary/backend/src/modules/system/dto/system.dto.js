@@ -76,6 +76,23 @@ function normalizeOperationLogQuery(query = {}) {
   };
 }
 
+// ==================== 密码相关数据 ====================
+
+function normalizePasswordChange(data = {}) {
+  return {
+    oldPassword: data.oldPassword || null,
+    newPassword: data.newPassword || null,
+    confirmPassword: data.confirmPassword || null
+  };
+}
+
+function normalizePasswordReset(data = {}) {
+  return {
+    newPassword: data.newPassword || null,
+    confirmPassword: data.confirmPassword || null
+  };
+}
+
 module.exports = {
   normalizeRoleInput,
   normalizeRoleQuery,
@@ -83,5 +100,7 @@ module.exports = {
   normalizeUserUpdate,
   normalizeUserQuery,
   normalizeOperationLogInput,
-  normalizeOperationLogQuery
+  normalizeOperationLogQuery,
+  normalizePasswordChange,
+  normalizePasswordReset
 };

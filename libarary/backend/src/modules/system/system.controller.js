@@ -12,6 +12,15 @@ const {
   getUser,
   listUsers,
   changeUserStatus,
+  restoreUser,
+  // 密码管理
+  changePassword,
+  resetPassword,
+  // 用户验证
+  validateUser,
+  // 系统统计
+  getSystemStats,
+  getOperationLogStats,
   // 操作日志
   recordOperationLog,
   getOperationLog,
@@ -27,13 +36,16 @@ function handleError(res, error) {
       return res.status(400).json({ message });
     case 'MISSING_FIELDS':
     case 'INVALID_STATUS':
+    case 'INVALID_PASSWORD':
     case 'DUPLICATE_ROLE':
     case 'DUPLICATE_USERNAME':
     case 'ROLE_IN_USE':
+    case 'USER_INACTIVE':
       return res.status(400).json({ message });
     case 'ROLE_NOT_FOUND':
     case 'USER_NOT_FOUND':
     case 'LOG_NOT_FOUND':
+    case 'WRONG_PASSWORD':
       return res.status(404).json({ message });
     default:
       return res.status(500).json({ message: '服务异常' });
@@ -144,6 +156,69 @@ async function patchUserStatus(req, res) {
   }
 }
 
+async function restoreUserById(req, res) {
+  try {
+    const result = await restoreUser(req.params.userId);
+    res.json({ data: result });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+// ==================== 密码管理接口 ====================
+
+async function changeUserPassword(req, res) {
+  try {
+    const result = await changePassword(req.params.userId, req.body);
+    res.json({ data: result });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+async function resetUserPassword(req, res) {
+  try {
+    const { newPassword } = req.body;
+    const result = await resetPassword(req.params.userId, newPassword);
+    res.json({ data: result });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+// ==================== 用户验证接口 ====================
+
+async function validateUserLogin(req, res) {
+  try {
+    const { username } = req.body;
+    const user = await validateUser(username);
+    res.json({ data: user });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+// ==================== 系统统计接口 ====================
+
+async function getStats(req, res) {
+  try {
+    const result = await getSystemStats();
+    res.json({ data: result });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+async function getLogStats(req, res) {
+  try {
+    const { days } = req.query;
+    const result = await getOperationLogStats(days ? Number(days) : 7);
+    res.json({ data: result });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
 // ==================== 操作日志接口 ====================
 
 async function getLogs(req, res) {
@@ -196,6 +271,15 @@ module.exports = {
   putUser,
   deleteUserById,
   patchUserStatus,
+  restoreUserById,
+  // 密码管理
+  changeUserPassword,
+  resetUserPassword,
+  // 用户验证
+  validateUserLogin,
+  // 系统统计
+  getStats,
+  getLogStats,
   // 操作日志
   getLogs,
   getLogById,

@@ -165,10 +165,71 @@ const userRepository = {
   },
 
   delete(id) {
-    return prisma.user.delete({
+    // 逻辑删除：标记为DELETED而不是物理删除
+    return prisma.user.update({
       where: { id },
+      data: { status: 'DELETED' },
       include: userInclude
     });
+  },
+
+  // 恢复已删除的用户
+  restore(id) {
+    return prisma.user.update({
+      where: { id },
+      data: { status: 'ACTIVE' },
+      include: userInclude
+    });
+  },
+
+  // 更新密码
+  updatePassword(id, passwordHash) {
+    return prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+      include: userInclude
+    });
+  },
+
+  // 获取系统统计信息
+  async getSystemStats() {
+    const [totalUsers, activeUsers, disabledUsers] = await Promise.all([
+      prisma.user.count({ where: { status: { notIn: ['DELETED'] } } }),
+      prisma.user.count({ where: { status: 'ACTIVE' } }),
+      prisma.user.count({ where: { status: 'DISABLED' } })
+    ]);
+
+    const totalRoles = await prisma.role.count();
+    const deletedUsers = await prisma.user.count({ where: { status: 'DELETED' } });
+
+    return {
+      totalUsers,
+      activeUsers,
+      disabledUsers,
+      deletedUsers,
+      totalRoles
+    };
+  },
+
+  // 获取日志统计
+  async getLogStats(days = 7) {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const total = await prisma.operationLog.count({ where: { createdAt: { gte: since } } });
+    const byAction = await prisma.operationLog.groupBy({
+      by: ['action'],
+      where: { createdAt: { gte: since } },
+      _count: true
+    });
+
+    return {
+      total,
+      byAction: byAction.map(item => ({
+        action: item.action,
+        count: item._count
+      }))
+    };
   }
 };
 
