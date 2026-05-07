@@ -12,4 +12,7 @@ router.use('/readers', require('./readers/reader.routes'));
 // 新增借阅模块
 router.use('/borrows', require('./borrows/borrow.routes'));
 
+// 新增系统管理模块
+router.use('/system', require('./system/system.routes'));
+
 module.exports = router;
