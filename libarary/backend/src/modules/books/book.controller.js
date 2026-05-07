@@ -73,6 +73,15 @@ async function deleteBookById(req, res) {
   }
 }
 
+  async searchBooks(req, res) {
+    try {
+      const results = await bookService.searchBooks(req.query);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
 async function patchBookStatus(req, res) {
   try {
     const result = await updateBookStatus(req.params.bookId, req.body.status);

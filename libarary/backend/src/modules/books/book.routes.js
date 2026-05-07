@@ -5,10 +5,13 @@ const {
   getBooks,
   patchBookStatus,
   postBook,
-  putBook
+  putBook,
+  searchBooks
 } = require('./book.controller');
 
 const router = express.Router();
+
+router.get('/search', searchBooks);
 
 router.get('/', getBooks);
 router.get('/:bookId', getBookById);
