@@ -1,0 +1,1819 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "图书馆管理系统 API",
+    "description": "这是一个完整的图书馆管理系统API文档，支持图书、读者、借阅、用户和系统管理等功能",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@library.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api",
+      "description": "本地开发服务器"
+    },
+    {
+      "url": "http://example.com/api",
+      "description": "生产服务器"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "DELETED"]
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "integer"
+          },
+          "totalCopies": {
+            "type": "integer"
+          },
+          "availableCopies": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["AVAILABLE", "BORROWED", "DAMAGED", "LOST"]
+          },
+          "publicationYear": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Reader": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "readerNo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string",
+            "enum": ["MALE", "FEMALE", "UNKNOWN"]
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "department": {
+            "type": "string"
+          },
+          "className": {
+            "type": "string"
+          },
+          "maxBorrowCount": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "DELETED"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BorrowRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "bookId": {
+            "type": "integer"
+          },
+          "readerId": {
+            "type": "integer"
+          },
+          "borrowDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "returnDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "RETURNED", "OVERDUE", "LOST"]
+          },
+          "borrowOperatorId": {
+            "type": "integer"
+          },
+          "returnOperatorId": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["系统接口"],
+        "summary": "服务健康检查",
+        "description": "检查服务是否正常运行",
+        "responses": {
+          "200": {
+            "description": "服务正常",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/db": {
+      "get": {
+        "tags": ["系统接口"],
+        "summary": "数据库连接检查",
+        "description": "检查数据库连接是否正常",
+        "responses": {
+          "200": {
+            "description": "数据库连接正常",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "database": {
+                      "type": "string",
+                      "example": "connected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "数据库连接失败"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["认证"],
+        "summary": "用户登录",
+        "description": "用户使用用户名和密码登录",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string",
+                      "description": "JWT访问令牌"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "刷新令牌"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["认证"],
+        "summary": "用户注册",
+        "description": "新用户注册账号",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "newuser"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "SecurePassword123!"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "example": "SecurePassword123!"
+                  },
+                  "fullName": {
+                    "type": "string",
+                    "example": "张三"
+                  },
+                  "roleId": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": ["username", "password", "confirmPassword", "fullName"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求错误"
+          }
+        }
+      }
+    },
+    "/auth/verify": {
+      "get": {
+        "tags": ["认证"],
+        "summary": "验证令牌",
+        "description": "验证JWT令牌是否有效",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "令牌有效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "valid": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "令牌无效或缺失"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["认证"],
+        "summary": "获取当前用户信息",
+        "description": "获取当前登录用户的详细信息",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取用户信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "未授权"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["认证"],
+        "summary": "用户登出",
+        "description": "登出当前用户",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "登出成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "登出成功"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books": {
+      "get": {
+        "tags": ["书籍管理"],
+        "summary": "获取书籍列表",
+        "description": "获取所有书籍的分页列表",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "每页数量"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "偏移量"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["AVAILABLE", "BORROWED", "DAMAGED", "LOST"]
+            },
+            "description": "书籍状态"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取书籍列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Book"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["书籍管理"],
+        "summary": "新增书籍",
+        "description": "创建新的书籍记录",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "深入浅出Node.js"
+                  },
+                  "author": {
+                    "type": "string",
+                    "example": "朴灵"
+                  },
+                  "isbn": {
+                    "type": "string",
+                    "example": "978-7-115-31755-7"
+                  },
+                  "publisher": {
+                    "type": "string",
+                    "example": "人民邮电出版社"
+                  },
+                  "categoryId": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "totalCopies": {
+                    "type": "integer",
+                    "example": 5
+                  },
+                  "publicationYear": {
+                    "type": "integer",
+                    "example": 2013
+                  }
+                },
+                "required": ["title", "author", "isbn"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "书籍创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求错误"
+          }
+        }
+      }
+    },
+    "/books/{bookId}": {
+      "get": {
+        "tags": ["书籍管理"],
+        "summary": "获取书籍详情",
+        "description": "根据ID获取单本书籍的详细信息",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取书籍信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "书籍不存在"
+          }
+        }
+      },
+      "put": {
+        "tags": ["书籍管理"],
+        "summary": "编辑书籍",
+        "description": "更新书籍信息",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "string"
+                  },
+                  "publisher": {
+                    "type": "string"
+                  },
+                  "categoryId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "书籍更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["书籍管理"],
+        "summary": "删除书籍",
+        "description": "删除指定的书籍记录",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "书籍删除成功"
+          },
+          "404": {
+            "description": "书籍不存在"
+          }
+        }
+      }
+    },
+    "/books/{bookId}/status": {
+      "patch": {
+        "tags": ["书籍管理"],
+        "summary": "更新书籍状态",
+        "description": "更新书籍的状态（如可用、借出、损坏等）",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["AVAILABLE", "BORROWED", "DAMAGED", "LOST"],
+                    "example": "AVAILABLE"
+                  }
+                },
+                "required": ["status"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "状态更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/search": {
+      "get": {
+        "tags": ["书籍管理"],
+        "summary": "搜索书籍",
+        "description": "按关键词、类别等搜索书籍",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "搜索关键词（书名、作者等）"
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "分类ID"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "书籍状态"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "搜索成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Book"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readers": {
+      "get": {
+        "tags": ["读者管理"],
+        "summary": "获取读者列表",
+        "description": "获取所有读者信息",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取读者列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Reader"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["读者管理"],
+        "summary": "创建读者",
+        "description": "添加新的读者信息",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "李四"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": ["MALE", "FEMALE", "UNKNOWN"],
+                    "example": "MALE"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "13800138000"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "department": {
+                    "type": "string",
+                    "example": "计算机学院"
+                  },
+                  "className": {
+                    "type": "string",
+                    "example": "2021级1班"
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "读者创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Reader"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readers/{id}": {
+      "get": {
+        "tags": ["读者管理"],
+        "summary": "获取读者详情",
+        "description": "获取单个读者的详细信息",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取读者信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Reader"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "读者不存在"
+          }
+        }
+      },
+      "put": {
+        "tags": ["读者管理"],
+        "summary": "编辑读者信息",
+        "description": "更新读者信息",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "department": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "读者信息更新成功"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["读者管理"],
+        "summary": "删除读者",
+        "description": "删除读者信息",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "读者删除成功"
+          }
+        }
+      }
+    },
+    "/readers/{id}/history": {
+      "get": {
+        "tags": ["读者管理"],
+        "summary": "获取读者借阅历史",
+        "description": "获取指定读者的所有借阅记录",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取借阅历史",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BorrowRecord"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/borrows": {
+      "get": {
+        "tags": ["借阅管理"],
+        "summary": "获取借阅记录列表",
+        "description": "获取所有借阅记录",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["ACTIVE", "RETURNED", "OVERDUE", "LOST"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取借阅记录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BorrowRecord"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["借阅管理"],
+        "summary": "创建借阅记录",
+        "description": "为读者借出图书",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bookId": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "readerId": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": ["bookId", "readerId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "借阅记录创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BorrowRecord"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求错误"
+          }
+        }
+      }
+    },
+    "/borrows/overdue": {
+      "get": {
+        "tags": ["借阅管理"],
+        "summary": "获取超期记录",
+        "description": "获取所有超期的借阅记录",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取超期记录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BorrowRecord"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/borrows/{borrowId}": {
+      "get": {
+        "tags": ["借阅管理"],
+        "summary": "获取借阅记录详情",
+        "description": "获取单条借阅记录的详细信息",
+        "parameters": [
+          {
+            "name": "borrowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取借阅记录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BorrowRecord"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "借阅记录不存在"
+          }
+        }
+      }
+    },
+    "/borrows/{borrowId}/return": {
+      "post": {
+        "tags": ["借阅管理"],
+        "summary": "归还图书",
+        "description": "记录图书归还",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "borrowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "returnDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "归还日期（可选，默认为今天）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "归还成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BorrowRecord"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/borrows/{borrowId}/renew": {
+      "post": {
+        "tags": ["借阅管理"],
+        "summary": "续期",
+        "description": "延长图书借阅期限",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "borrowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "续期成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BorrowRecord"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/roles": {
+      "get": {
+        "tags": ["系统管理-角色"],
+        "summary": "获取角色列表",
+        "responses": {
+          "200": {
+            "description": "成功获取角色列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["系统管理-角色"],
+        "summary": "创建角色",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "管理员"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "系统管理员"
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "角色创建成功"
+          }
+        }
+      }
+    },
+    "/system/roles/{roleId}": {
+      "get": {
+        "tags": ["系统管理-角色"],
+        "summary": "获取角色详情",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取角色信息"
+          }
+        }
+      },
+      "put": {
+        "tags": ["系统管理-角色"],
+        "summary": "编辑角色",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "角色更新成功"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["系统管理-角色"],
+        "summary": "删除角色",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "角色删除成功"
+          }
+        }
+      }
+    },
+    "/system/users": {
+      "get": {
+        "tags": ["系统管理-用户"],
+        "summary": "获取用户列表",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取用户列表"
+          }
+        }
+      },
+      "post": {
+        "tags": ["系统管理-用户"],
+        "summary": "创建用户",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "librarian"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Password123!"
+                  },
+                  "fullName": {
+                    "type": "string",
+                    "example": "图书馆员"
+                  },
+                  "roleId": {
+                    "type": "integer",
+                    "example": 2
+                  }
+                },
+                "required": ["username", "password", "fullName"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "用户创建成功"
+          }
+        }
+      }
+    },
+    "/system/users/{userId}": {
+      "get": {
+        "tags": ["系统管理-用户"],
+        "summary": "获取用户详情",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取用户信息"
+          }
+        }
+      },
+      "put": {
+        "tags": ["系统管理-用户"],
+        "summary": "编辑用户",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fullName": {
+                    "type": "string"
+                  },
+                  "roleId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "用户更新成功"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["系统管理-用户"],
+        "summary": "删除用户",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "用户删除成功"
+          }
+        }
+      }
+    },
+    "/system/users/{userId}/status": {
+      "patch": {
+        "tags": ["系统管理-用户"],
+        "summary": "修改用户状态",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["ACTIVE", "INACTIVE", "DELETED"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "用户状态更新成功"
+          }
+        }
+      }
+    },
+    "/system/users/{userId}/password/change": {
+      "post": {
+        "tags": ["系统管理-密码"],
+        "summary": "修改用户密码",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPassword": {
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "type": "string"
+                  },
+                  "confirmPassword": {
+                    "type": "string"
+                  }
+                },
+                "required": ["oldPassword", "newPassword", "confirmPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "密码修改成功"
+          }
+        }
+      }
+    },
+    "/system/users/{userId}/password/reset": {
+      "post": {
+        "tags": ["系统管理-密码"],
+        "summary": "重置用户密码",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newPassword": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "密码重置成功"
+          }
+        }
+      }
+    },
+    "/system/stats": {
+      "get": {
+        "tags": ["系统管理-统计"],
+        "summary": "获取系统统计数据",
+        "description": "获取系统的统计数据（用户数、书籍数、借阅记录等）",
+        "responses": {
+          "200": {
+            "description": "成功获取统计数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/logs": {
+      "get": {
+        "tags": ["系统管理-日志"],
+        "summary": "获取操作日志列表",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取日志列表"
+          }
+        }
+      }
+    }
+  }
+}
