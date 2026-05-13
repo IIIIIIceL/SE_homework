@@ -1,5 +1,6 @@
 const { prisma } = require('../../config/database');
 const borrowRepository = require('./borrow.repository');
+const { operationLogRepository } = require('../system/system.repository');
 const {
   normalizeBorrowInput,
   normalizeReturnInput,
@@ -17,6 +18,15 @@ function createError(code, message) {
   const error = new Error(message);
   error.code = code;
   return error;
+}
+
+async function logBorrowAction(payload) {
+  try {
+    await operationLogRepository.create(payload);
+  } catch (error) {
+    // 操作日志失败不应影响主业务流程
+    console.warn('[borrow-log] 操作日志记录失败:', error.message);
+  }
 }
 
 /**
@@ -177,6 +187,14 @@ async function borrowBook(data, operatorId) {
     return newRecord;
   });
 
+  await logBorrowAction({
+    userId: operatorId || null,
+    action: 'BORROW_BOOK',
+    targetType: 'BorrowRecord',
+    targetId: String(borrowRecord.id),
+    detail: `读者 ${reader.name} 借阅图书 ${book.title}`
+  });
+
   return borrowRecord;
 }
 
@@ -270,6 +288,14 @@ async function returnBook(borrowId, data, operatorId) {
     });
 
     return updated;
+  });
+
+  await logBorrowAction({
+    userId: operatorId || null,
+    action: 'RETURN_BOOK',
+    targetType: 'BorrowRecord',
+    targetId: String(returnRecord.id),
+    detail: `读者 ${borrow.reader.name} 归还图书 ${borrow.book.title}，罚款 ${fineAmount}`
   });
 
   return returnRecord;
@@ -401,6 +427,9 @@ async function getOverdueRecords(query) {
     borrowRepository.getOverdueRecords(params),
     borrowRepository.countOverdue()
   ]);
+
+  // 通知能力预留：后续可在这里接入短信/邮件/站内信超期提醒
+  // 例如：await notificationService.sendOverdueReminders(items)
 
   return {
     data: toBorrowListVO(items),
