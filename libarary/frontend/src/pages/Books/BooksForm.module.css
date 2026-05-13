@@ -1,0 +1,17 @@
+.page { padding: 24px; background: #f5f5f5; min-height: 100vh; }
+.page h2 { margin: 0 0 16px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+.full { margin-top: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 13px; color: #666; }
+.input { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; }
+.textarea { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; resize: vertical; }
+.fieldError { color: #ff4d4f; font-size: 12px; }
+.error { color: #ff4d4f; background: #fff1f0; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+.loading { text-align: center; padding: 40px; color: #999; }
+.footer { display: flex; gap: 8px; margin-top: 16px; }
+.primaryBtn { padding: 10px 24px; background: #1890ff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.primaryBtn:hover:not(:disabled) { background: #40a9ff; }
+.primaryBtn:disabled { background: #91d5ff; cursor: not-allowed; }
+.btn { padding: 10px 24px; background: #fff; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.btn:hover { border-color: #1890ff; color: #1890ff; }
