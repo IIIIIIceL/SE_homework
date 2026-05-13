@@ -18,6 +18,9 @@ router.use('/system', require('./system/system.routes'));
 // 新增认证模块
 router.use('/auth', require('./auth/auth.routes'));
 
+// 新增查询与统计模块
+router.use('/statistics', require('./statistics/statistics.routes'));
+
 // registerModules 函数用于在 Express app 中注册所有模块路由
 function registerModules(app) {
   app.use('/api', router);
