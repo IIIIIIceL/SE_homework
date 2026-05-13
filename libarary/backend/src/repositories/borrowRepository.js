@@ -5,6 +5,137 @@ function buildBorrowNo() {
 }
 
 const borrowRepository = {
+  /**
+   * 查询借阅记录列表
+   * @param {Object} filters - 查询条件
+   * @param {string} filters.startDate - 开始日期（借书时间）
+   * @param {string} filters.endDate - 结束日期（借书时间）
+   * @param {number} filters.readerId - 读者 ID
+   * @param {number} filters.bookId - 图书 ID
+   * @param {string} filters.status - 借阅状态
+   * @param {number} filters.page - 页码
+   * @param {number} filters.pageSize - 每页数量
+   */
+  async findBorrowRecords(filters = {}) {
+    const {
+      startDate,
+      endDate,
+      readerId,
+      bookId,
+      status,
+      page = 1,
+      pageSize = 10
+    } = filters;
+
+    const where = {};
+
+    // 时间范围过滤
+    if (startDate || endDate) {
+      where.borrowDate = {};
+      if (startDate) {
+        where.borrowDate.gte = new Date(startDate);
+      }
+      if (endDate) {
+        // 包含结束日期的全天
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.borrowDate.lte = end;
+      }
+    }
+
+    // 读者 ID 过滤
+    if (readerId) {
+      where.readerId = readerId;
+    }
+
+    // 图书 ID 过滤
+    if (bookId) {
+      where.bookId = bookId;
+    }
+
+    // 状态过滤
+    if (status) {
+      where.status = status;
+    }
+
+    const skip = (page - 1) * pageSize;
+    const take = parseInt(pageSize, 10);
+
+    const [records, total] = await Promise.all([
+      prisma.borrowRecord.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          reader: true,
+          book: {
+            include: {
+              category: true,
+              publisher: true
+            }
+          },
+          borrowOperator: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true
+            }
+          },
+          returnOperator: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true
+            }
+          }
+        },
+        orderBy: {
+          borrowDate: 'desc'
+        }
+      }),
+      prisma.borrowRecord.count({ where })
+    ]);
+
+    return {
+      data: records,
+      total,
+      page,
+      pageSize
+    };
+  },
+
+  /**
+   * 根据 ID 获取借阅记录详情
+   */
+  async findBorrowRecordById(id) {
+    return prisma.borrowRecord.findUnique({
+      where: { id },
+      include: {
+        reader: true,
+        book: {
+          include: {
+            category: true,
+            publisher: true
+          }
+        },
+        borrowOperator: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true
+          }
+        },
+        returnOperator: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true
+          }
+        }
+      }
+    });
+  },
+
   async borrowBook({ readerId, bookId, dueDate, operatorBorrowId, remark }) {
     return prisma.$transaction(async (tx) => {
       const book = await tx.book.findUnique({ where: { id: bookId } });

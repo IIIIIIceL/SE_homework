@@ -4,7 +4,10 @@
       "Bash(mv d:/SE_homework/libarary/server/* d:/SE_homework/libarary/backend/ && rmdir d:/SE_homework/libarary/server)",
       "Bash(git add *)",
       "Bash(git rm *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3001/api/circulation/borrow-records)",
+      "Bash(npm install *)"
     ],
     "additionalDirectories": [
       "d:\\SE_homework\\libarary\\server"
