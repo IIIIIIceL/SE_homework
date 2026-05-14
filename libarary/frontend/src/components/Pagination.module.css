@@ -1,0 +1,38 @@
+.container {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.info {
+  margin-right: 8px;
+  color: #55708a;
+}
+
+.btn {
+  min-width: 36px;
+  padding: 8px 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #17324d;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.active {
+  border-color: #1f6feb;
+  background: #1f6feb;
+  color: #fff;
+}
+
+.ellipsis {
+  padding: 0 4px;
+  color: #55708a;
+}

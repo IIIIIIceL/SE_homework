@@ -1,8 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
+const { hashPassword } = require('../src/common/utils/password');
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const adminPasswordHash = hashPassword('123456');
+
   const adminRole = await prisma.role.upsert({
     where: { name: 'ADMIN' },
     update: {},
@@ -23,12 +26,17 @@ async function main() {
 
   await prisma.user.upsert({
     where: { username: 'admin' },
-    update: {},
+    update: {
+      passwordHash: adminPasswordHash,
+      roleId: adminRole.id,
+      status: 'ACTIVE'
+    },
     create: {
       username: 'admin',
-      passwordHash: 'PLEASE_REPLACE_WITH_HASH',
+      passwordHash: adminPasswordHash,
       fullName: '系统管理员',
-      roleId: adminRole.id
+      roleId: adminRole.id,
+      status: 'ACTIVE'
     }
   });
 
@@ -74,12 +82,12 @@ async function main() {
     }
   });
 
-  console.log('Seed completed.');
+  console.log('Seed completed. Default login: admin / 123456');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
+  .catch((error) => {
+    console.error(error);
     process.exit(1);
   })
   .finally(async () => {
