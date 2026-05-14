@@ -1,7 +1,32 @@
 const { prisma } = require('../config/database');
 
+function buildWhere(params = {}) {
+  const { keyword, status } = params;
+  const andClauses = [];
+
+  if (status && status !== 'ALL') {
+    andClauses.push({ status });
+  }
+
+  if (keyword && String(keyword).trim()) {
+    const search = String(keyword).trim();
+    andClauses.push({
+      OR: [
+        { readerNo: { contains: search } },
+        { name: { contains: search } },
+        { phone: { contains: search } },
+        { email: { contains: search } },
+        { department: { contains: search } },
+        { className: { contains: search } }
+      ]
+    });
+  }
+
+  return andClauses.length ? { AND: andClauses } : {};
+}
+
 const readerRepository = {
-  async create(data) {
+  create(data) {
     return prisma.reader.create({ data });
   },
 
@@ -13,32 +38,20 @@ const readerRepository = {
     return prisma.reader.findUnique({ where: { readerNo } });
   },
 
-  findByIdNumber(idNumber) {
-    return prisma.reader.findUnique({ where: { idNumber } });
-  },
-
-  async update(id, data) {
+  update(id, data) {
     return prisma.reader.update({ where: { id }, data });
   },
 
-  async delete(id) {
+  delete(id) {
     return prisma.reader.delete({ where: { id } });
   },
 
   async list(params = {}) {
-    const { page = 1, pageSize = 10, keyword } = params;
+    const { page = 1, pageSize = 10 } = params;
     const skip = (page - 1) * pageSize;
-    const where = keyword
-      ? {
-          OR: [
-            { readerNo: { contains: keyword } },
-            { name: { contains: keyword } },
-            { phone: { contains: keyword } }
-          ]
-        }
-      : {};
+    const where = buildWhere(params);
 
-    const [items, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       prisma.reader.findMany({
         where,
         skip,
@@ -48,7 +61,7 @@ const readerRepository = {
       prisma.reader.count({ where })
     ]);
 
-    return { rows: items, count: total };
+    return { rows, total };
   }
 };
 
