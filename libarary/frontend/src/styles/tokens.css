@@ -1,0 +1,13 @@
+:root {
+  --font-body: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-bg: #f4f7fb;
+  --color-surface: #ffffff;
+  --color-border: #d8e0ea;
+  --color-text: #17324d;
+  --color-text-muted: #55708a;
+  --color-primary: #1f6feb;
+  --color-primary-strong: #195cc0;
+  --color-danger: #d14343;
+  --shadow-card: 0 18px 40px rgba(19, 44, 74, 0.08);
+  --radius-md: 14px;
+}

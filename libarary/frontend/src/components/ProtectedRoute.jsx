@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children, requiredRole }) {
@@ -6,15 +7,20 @@ export default function ProtectedRoute({ children, requiredRole }) {
   const location = useLocation();
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>加载中...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        Loading...
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`${ROUTES.login}?redirect=${redirect}`} replace />;
   }
 
   if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to={ROUTES.unauthorized} replace />;
   }
 
   return children;
