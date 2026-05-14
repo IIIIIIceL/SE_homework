@@ -26,7 +26,7 @@ http.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     if (!error.response) {
-      error.message = error.code === 'ECONNABORTED' ? 'Request timeout, please try again.' : 'Network error, please check the backend service.';
+      error.message = error.code === 'ECONNABORTED' ? '请求超时，请稍后重试。' : '网络异常，请检查后端服务是否已启动。';
     }
 
     if (status === 401) {

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+﻿import { createBrowserRouter } from 'react-router-dom';
 import App from '../App';
 import AppLayout from '../components/AppLayout';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -25,8 +25,8 @@ import LogsPage from '../pages/System/Logs';
 function DashboardHome() {
   return (
     <div>
-      <h2>Welcome to the library management system</h2>
-      <p>Please choose a module from the navigation menu.</p>
+      <h2>欢迎使用图书管理系统</h2>
+      <p>请从左侧导航菜单选择需要办理的业务模块。</p>
     </div>
   );
 }

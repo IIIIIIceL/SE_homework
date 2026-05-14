@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 
 export default function Unauthorized() {
@@ -14,8 +14,8 @@ export default function Unauthorized() {
       }}
     >
       <h1 style={{ fontSize: 72, margin: 0, color: '#d14343' }}>403</h1>
-      <h2 style={{ margin: '16px 0 8px', color: '#17324d' }}>Access denied</h2>
-      <p style={{ color: '#55708a', marginBottom: 24 }}>You do not have permission to view this page.</p>
+      <h2 style={{ margin: '16px 0 8px', color: '#17324d' }}>无权访问</h2>
+      <p style={{ color: '#55708a', marginBottom: 24 }}>你没有权限查看该页面。</p>
       <Link
         to={ROUTES.root}
         style={{
@@ -26,7 +26,7 @@ export default function Unauthorized() {
           textDecoration: 'none'
         }}
       >
-        Return home
+        返回首页
       </Link>
     </div>
   );

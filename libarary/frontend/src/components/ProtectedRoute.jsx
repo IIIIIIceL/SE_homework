@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+﻿import { Navigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        Loading...
+        正在加载...
       </div>
     );
   }

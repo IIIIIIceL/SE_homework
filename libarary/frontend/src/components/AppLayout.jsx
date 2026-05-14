@@ -20,7 +20,7 @@ export default function AppLayout() {
       <Sidebar />
 
       <main className={styles.main}>
-        <TopBar userName={user?.fullName || user?.username || 'User'} onLogout={handleLogout} />
+        <TopBar userName={user?.fullName || user?.username || '用户'} onLogout={handleLogout} />
         <Content />
       </main>
     </div>
