@@ -1,13 +1,10 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
-import styles from './AppLayout.module.css';
-
-const menuItems = [
-  { path: ROUTES.dashboard, label: 'Dashboard' },
-  { path: ROUTES.books, label: 'Books' },
-  { path: ROUTES.borrows, label: 'Borrows' }
-];
+import Content from './Layout/Content';
+import Sidebar from './Layout/Sidebar';
+import TopBar from './Layout/TopBar';
+import styles from './Layout/Layout.module.css';
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
@@ -20,32 +17,11 @@ export default function AppLayout() {
 
   return (
     <div className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <h1 className={styles.logo}>Library Admin</h1>
-        <nav className={styles.nav}>
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
+      <Sidebar />
 
       <main className={styles.main}>
-        <header className={styles.topbar}>
-          <span>{user?.fullName || user?.username || 'User'}</span>
-          <button type="button" className={styles.logoutBtn} onClick={handleLogout}>
-            Sign out
-          </button>
-        </header>
-
-        <div className={styles.content}>
-          <Outlet />
-        </div>
+        <TopBar userName={user?.fullName || user?.username || 'User'} onLogout={handleLogout} />
+        <Content />
       </main>
     </div>
   );

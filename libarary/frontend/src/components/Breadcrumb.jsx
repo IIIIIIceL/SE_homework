@@ -1,0 +1,71 @@
+import { Link, matchPath, useLocation } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
+
+const breadcrumbMap = [
+  { pattern: ROUTES.dashboard, label: 'Dashboard' },
+  { pattern: ROUTES.books, label: 'Books' },
+  { pattern: ROUTES.createBook, label: 'Create Book' },
+  { pattern: '/books/:id', label: 'Book Detail' },
+  { pattern: '/books/:id/edit', label: 'Edit Book' },
+  { pattern: ROUTES.borrows, label: 'Borrows' },
+  { pattern: ROUTES.borrowBook, label: 'Borrow Book' },
+  { pattern: ROUTES.overdueBorrows, label: 'Overdue Records' },
+  { pattern: '/borrows/:id', label: 'Borrow Detail' }
+];
+
+function buildBreadcrumbs(pathname) {
+  const items = [{ label: 'Home', path: ROUTES.dashboard }];
+
+  for (const item of breadcrumbMap) {
+    if (matchPath({ path: item.pattern, end: true }, pathname)) {
+      if (item.pattern === ROUTES.dashboard) {
+        return items;
+      }
+
+      const section = item.pattern.startsWith('/books') ? { label: 'Books', path: ROUTES.books } : null;
+      const borrowSection = item.pattern.startsWith('/borrows') ? { label: 'Borrows', path: ROUTES.borrows } : null;
+
+      if (section && !items.some((entry) => entry.path === section.path)) {
+        items.push(section);
+      }
+
+      if (borrowSection && !items.some((entry) => entry.path === borrowSection.path)) {
+        items.push(borrowSection);
+      }
+
+      if (item.pattern !== ROUTES.books && item.pattern !== ROUTES.borrows) {
+        items.push({ label: item.label, path: pathname });
+      }
+
+      return items;
+    }
+  }
+
+  return items;
+}
+
+export default function Breadcrumb() {
+  const location = useLocation();
+  const items = buildBreadcrumbs(location.pathname);
+
+  return (
+    <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
+
+        return (
+          <span key={`${item.path}-${item.label}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            {isLast ? (
+              <span style={{ color: 'var(--color-text)', fontWeight: 700 }}>{item.label}</span>
+            ) : (
+              <Link to={item.path} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>
+                {item.label}
+              </Link>
+            )}
+            {!isLast && <span style={{ color: 'var(--color-text-muted)' }}>/</span>}
+          </span>
+        );
+      })}
+    </nav>
+  );
+}
