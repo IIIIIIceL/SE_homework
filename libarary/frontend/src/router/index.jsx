@@ -9,6 +9,10 @@ import BookList from '../pages/Books/List';
 import BookDetail from '../pages/Books/Detail';
 import BookCreate from '../pages/Books/Create';
 import BookEdit from '../pages/Books/Edit';
+import ReaderList from '../pages/Readers/List';
+import ReaderDetail from '../pages/Readers/Detail';
+import ReaderCreate from '../pages/Readers/Create';
+import ReaderEdit from '../pages/Readers/Edit';
 import BorrowList from '../pages/Borrows/List';
 import BorrowDetail from '../pages/Borrows/Detail';
 import BorrowBook from '../pages/Borrows/Borrow';
@@ -43,6 +47,10 @@ const router = createBrowserRouter([
           { path: ROUTES.createBook.slice(1), element: <BookCreate /> },
           { path: 'books/:id', element: <BookDetail /> },
           { path: 'books/:id/edit', element: <BookEdit /> },
+          { path: ROUTES.readers.slice(1), element: <ReaderList /> },
+          { path: ROUTES.createReader.slice(1), element: <ReaderCreate /> },
+          { path: 'readers/:id', element: <ReaderDetail /> },
+          { path: 'readers/:id/edit', element: <ReaderEdit /> },
           { path: ROUTES.borrows.slice(1), element: <BorrowList /> },
           { path: ROUTES.borrowBook.slice(1), element: <BorrowBook /> },
           { path: ROUTES.overdueBorrows.slice(1), element: <Overdue /> },

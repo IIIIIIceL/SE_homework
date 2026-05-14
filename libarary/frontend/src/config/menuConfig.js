@@ -14,6 +14,12 @@ export const menuConfig = [
     description: 'Catalog and inventory management'
   },
   {
+    key: 'readers',
+    label: 'Readers',
+    path: ROUTES.readers,
+    description: 'Reader profile and history management'
+  },
+  {
     key: 'borrows',
     label: 'Borrows',
     path: ROUTES.borrows,

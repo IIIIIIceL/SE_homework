@@ -7,6 +7,10 @@ const breadcrumbMap = [
   { pattern: ROUTES.createBook, label: 'Create Book' },
   { pattern: '/books/:id', label: 'Book Detail' },
   { pattern: '/books/:id/edit', label: 'Edit Book' },
+  { pattern: ROUTES.readers, label: 'Readers' },
+  { pattern: ROUTES.createReader, label: 'Create Reader' },
+  { pattern: '/readers/:id', label: 'Reader Detail' },
+  { pattern: '/readers/:id/edit', label: 'Edit Reader' },
   { pattern: ROUTES.borrows, label: 'Borrows' },
   { pattern: ROUTES.borrowBook, label: 'Borrow Book' },
   { pattern: ROUTES.overdueBorrows, label: 'Overdue Records' },
@@ -23,10 +27,15 @@ function buildBreadcrumbs(pathname) {
       }
 
       const section = item.pattern.startsWith('/books') ? { label: 'Books', path: ROUTES.books } : null;
+      const readerSection = item.pattern.startsWith('/readers') ? { label: 'Readers', path: ROUTES.readers } : null;
       const borrowSection = item.pattern.startsWith('/borrows') ? { label: 'Borrows', path: ROUTES.borrows } : null;
 
       if (section && !items.some((entry) => entry.path === section.path)) {
         items.push(section);
+      }
+
+      if (readerSection && !items.some((entry) => entry.path === readerSection.path)) {
+        items.push(readerSection);
       }
 
       if (borrowSection && !items.some((entry) => entry.path === borrowSection.path)) {
