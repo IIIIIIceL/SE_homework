@@ -1,9 +1,10 @@
-const { Reader } = require('../../models');
+const readerRepository = require('../../repositories/readerRepository');
+const borrowRepository = require('../../repositories/borrowRepository');
 
 class ReaderService {
   async createReader(readerData) {
-    // 校验证件号唯一性
-    const existing = await Reader.findOne({ where: { idNumber: readerData.idNumber } });
+    // 校验证件号唯一性（使用仓库层，统一 prisma 实现）
+    const existing = await readerRepository.findByIdNumber(readerData.idNumber);
     if (existing) {
       throw new Error('证件号已存在');
     }
@@ -11,29 +12,23 @@ class ReaderService {
     // 生成借阅证号
     readerData.borrowCardNumber = this.generateBorrowCardNumber();
 
-    return Reader.create(readerData);
+    return readerRepository.create(readerData);
   }
 
   generateBorrowCardNumber() {
-    // 生成借阅证号：B + 时间戳
     return `B${Date.now()}`;
   }
 
   async getReaderById(id) {
-    return Reader.findByPk(id);
+    return readerRepository.findById(Number(id));
   }
 
   async getAllReaders(page = 1, pageSize = 10) {
-    const offset = (page - 1) * pageSize;
-    return Reader.findAndCountAll({
-      limit: pageSize,
-      offset,
-      order: [['createdAt', 'DESC']]
-    });
+    return readerRepository.list({ page, pageSize });
   }
 
   async updateReader(id, updateData) {
-    const reader = await Reader.findByPk(id);
+    const reader = await readerRepository.findById(Number(id));
     if (!reader) return null;
 
     // 只允许更新联系方式字段
@@ -51,35 +46,26 @@ class ReaderService {
       }
     }
 
-    return reader.update(filteredData);
+    return readerRepository.update(Number(id), filteredData);
   }
 
   async deleteReader(id) {
-    const reader = await Reader.findByPk(id);
+    const reader = await readerRepository.findById(Number(id));
     if (!reader) return false;
 
-    // 先清除借阅记录（调用circulation模块）
-    try {
-      const circulationService = require('../circulation/circulation.service');
-      await circulationService.deleteBorrowingHistoryByReaderId(id);
-    } catch (error) {
-      // TODO: circulation模块实现后应严格处理错误
-      console.error('无法清除借阅记录:', error.message);
+    // 不允许删除存在未归还借阅记录的读者
+    const records = await borrowRepository.findBorrowRecords({ readerId: Number(id), status: 'BORROWED', page: 1, pageSize: 1 });
+    if (records && records.total && records.total > 0) {
+      throw new Error('读者存在未归还借阅记录，无法删除');
     }
 
-    await reader.destroy();
+    await readerRepository.delete(Number(id));
     return true;
   }
 
-  // 预留接口 - 后续与借阅模块集成
   async getBorrowingHistory(readerId) {
-    try {
-      const circulationService = require('../circulation/circulation.service');
-      return circulationService.getBorrowingHistoryByReaderId(readerId);
-    } catch (error) {
-      // TODO: circulation模块实现后移除容错
-      return [];
-    }
+    const result = await borrowRepository.findBorrowRecords({ readerId: Number(readerId), page: 1, pageSize: 100 });
+    return result.data || [];
   }
 }
 

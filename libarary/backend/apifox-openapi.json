@@ -185,6 +185,143 @@
             "type": "string"
           }
         }
+      },
+      "BorrowRecordVO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "borrowNo": { "type": "string" },
+          "reader": { "$ref": "#/components/schemas/Reader" },
+          "book": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "isbn": { "type": "string" },
+              "title": { "type": "string" },
+              "author": { "type": "string" },
+              "availableCopies": { "type": "integer" },
+              "status": { "type": "string" }
+            }
+          },
+          "borrowDate": { "type": "string", "format": "date-time" },
+          "dueDate": { "type": "string", "format": "date-time" },
+          "returnDate": { "type": "string", "format": "date-time" },
+          "renewCount": { "type": "integer" },
+          "status": { "type": "string" },
+          "fineAmount": { "type": "number" },
+          "borrowOperator": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "username": { "type": "string" },
+              "fullName": { "type": "string" }
+            }
+          },
+          "returnOperator": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "username": { "type": "string" },
+              "fullName": { "type": "string" }
+            }
+          },
+          "remark": { "type": "string" }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer" },
+          "pageSize": { "type": "integer" },
+          "total": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      },
+      "BorrowRecordListResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/BorrowRecordVO" } },
+          "pagination": { "$ref": "#/components/schemas/Pagination" }
+        }
+      },
+      "TrendItem": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string" },
+          "month": { "type": "string" },
+          "count": { "type": "integer" }
+        }
+      },
+      "BorrowTrendResponse": {
+        "type": "object",
+        "properties": {
+          "granularity": { "type": "string", "enum": ["DAY", "MONTH"] },
+          "trend": { "type": "array", "items": { "$ref": "#/components/schemas/TrendItem" } }
+        }
+      },
+      "PopularBookItem": {
+        "type": "object",
+        "properties": {
+          "rank": { "type": "integer" },
+          "borrowCount": { "type": "integer" },
+          "book": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "isbn": { "type": "string" },
+              "title": { "type": "string" },
+              "author": { "type": "string" },
+              "totalCopies": { "type": "integer" },
+              "availableCopies": { "type": "integer" },
+              "category": { "type": "string" },
+              "publisher": { "type": "string" }
+            }
+          }
+        }
+      },
+      "PopularBooksResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/PopularBookItem" } },
+          "period": { "type": "string" }
+        }
+      },
+      "InventoryItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "isbn": { "type": "string" },
+          "title": { "type": "string" },
+          "author": { "type": "string" },
+          "categoryId": { "type": "integer" },
+          "category": { "type": "string" },
+          "publisher": { "type": "string" },
+          "totalCopies": { "type": "integer" },
+          "availableCopies": { "type": "integer" },
+          "borrowedCopies": { "type": "integer" },
+          "location": { "type": "string" },
+          "status": { "type": "string" },
+          "price": { "type": "number" }
+        }
+      },
+      "InventorySummary": {
+        "type": "object",
+        "properties": {
+          "totalBooks": { "type": "integer" },
+          "totalCopies": { "type": "integer" },
+          "availableCopies": { "type": "integer" },
+          "borrowedCopies": { "type": "integer" },
+          "offShelfBooks": { "type": "integer" },
+          "totalCategories": { "type": "integer" }
+        }
+      },
+      "InventoryResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/InventoryItem" } },
+          "summary": { "$ref": "#/components/schemas/InventorySummary" },
+          "pagination": { "$ref": "#/components/schemas/Pagination" }
+        }
       }
     }
   },
@@ -829,23 +966,25 @@
       "get": {
         "tags": ["读者管理"],
         "summary": "获取读者列表",
-        "description": "获取所有读者信息",
+        "description": "获取所有读者信息（分页返回）",
         "parameters": [
           {
-            "name": "limit",
+            "name": "page",
             "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 10
-            }
+            "schema": { "type": "integer", "default": 1 },
+            "description": "页码，从 1 开始"
           },
           {
-            "name": "offset",
+            "name": "pageSize",
             "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 0
-            }
+            "schema": { "type": "integer", "default": 10 },
+            "description": "每页数量"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "可选：按姓名/证件号/手机号等关键词搜索"
           }
         ],
         "responses": {
@@ -856,12 +995,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Reader"
-                      }
-                    }
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Reader" } },
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" },
+                    "pageSize": { "type": "integer" }
                   }
                 }
               }
@@ -916,14 +1053,7 @@
             "description": "读者创建成功",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Reader"
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/Reader" }
               }
             }
           }
@@ -950,19 +1080,13 @@
             "description": "成功获取读者信息",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/Reader"
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/Reader" }
               }
             }
           },
           "404": {
-            "description": "读者不存在"
+            "description": "读者不存在",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
           }
         }
       },
@@ -1006,8 +1130,11 @@
         },
         "responses": {
           "200": {
-            "description": "读者信息更新成功"
-          }
+            "description": "读者信息更新成功",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Reader" } } }
+          },
+          "400": { "description": "请求参数错误", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "读者不存在", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       },
       "delete": {
@@ -1025,9 +1152,9 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "读者删除成功"
-          }
+          "204": { "description": "读者删除成功（无内容）" },
+          "404": { "description": "读者不存在", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "服务器错误", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
     },
@@ -1035,7 +1162,7 @@
       "get": {
         "tags": ["读者管理"],
         "summary": "获取读者借阅历史",
-        "description": "获取指定读者的所有借阅记录",
+        "description": "获取指定读者的所有借阅记录（返回数组）",
         "security": [
           {
             "bearerAuth": []
@@ -1057,15 +1184,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BorrowRecord"
-                      }
-                    }
-                  }
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/BorrowRecord" }
                 }
               }
             }
@@ -1811,6 +1931,102 @@
         "responses": {
           "200": {
             "description": "成功获取日志列表"
+          }
+        }
+      }
+    },
+    "/statistics/borrow-records": {
+      "get": {
+        "tags": ["统计-借阅"],
+        "summary": "按条件查询借阅记录",
+        "parameters": [
+          { "name": "startDate", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "开始日期" },
+          { "name": "endDate", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "结束日期" },
+          { "name": "readerId", "in": "query", "schema": { "type": "integer" }, "description": "读者ID" },
+          { "name": "bookId", "in": "query", "schema": { "type": "integer" }, "description": "图书ID" },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["ALL", "ACTIVE", "RETURNED", "OVERDUE", "LOST"] }, "description": "借阅状态，ALL 表示全部" },
+          { "name": "keyword", "in": "query", "schema": { "type": "string" }, "description": "关键字（借阅单号/读者/图书）" },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "pageSize", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BorrowRecordListResponse" }
+              }
+            }
+          },
+          "400": { "description": "请求参数错误", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/statistics/borrow-trend": {
+      "get": {
+        "tags": ["统计-借阅"],
+        "summary": "获取借阅量趋势（日或月）",
+        "parameters": [
+          { "name": "granularity", "in": "query", "schema": { "type": "string", "enum": ["DAY", "MONTH"], "default": "DAY" }, "description": "统计粒度：DAY 或 MONTH" },
+          { "name": "startDate", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "开始日期（可选）" },
+          { "name": "endDate", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "结束日期（可选）" },
+          { "name": "days", "in": "query", "schema": { "type": "integer", "default": 30 }, "description": "最近多少天（当未提供 startDate/endDate 时生效）" }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BorrowTrendResponse" }
+              }
+            }
+          },
+          "400": { "description": "请求参数错误", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/statistics/popular-books": {
+      "get": {
+        "tags": ["统计-书籍"],
+        "summary": "获取热门图书排行",
+        "parameters": [
+          { "name": "startDate", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "开始日期" },
+          { "name": "endDate", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "结束日期" },
+          { "name": "days", "in": "query", "schema": { "type": "integer", "default": 30 }, "description": "最近多少天（默认30）" },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 }, "description": "返回排行数量限制" }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PopularBooksResponse" }
+              }
+            }
+          },
+          "400": { "description": "请求参数错误", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/statistics/inventory": {
+      "get": {
+        "tags": ["统计-库存"],
+        "summary": "库存盘点查询",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["ALL", "AVAILABLE", "BORROWED", "DAMAGED", "LOST", "OFF_SHELF"] }, "description": "图书状态过滤" },
+          { "name": "keyword", "in": "query", "schema": { "type": "string" }, "description": "关键字（书名/作者/ISBN）" },
+          { "name": "categoryId", "in": "query", "schema": { "type": "integer" }, "description": "分类ID" },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "pageSize", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询成功",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InventoryResponse" }
+              }
+            }
           }
         }
       }
