@@ -9,5 +9,9 @@ export const ROUTES = {
   createReader: '/readers/create',
   borrows: '/borrows',
   borrowBook: '/borrows/borrow',
-  overdueBorrows: '/borrows/overdue'
+  overdueBorrows: '/borrows/overdue',
+  systemDashboard: '/system',
+  systemRoles: '/system/roles',
+  systemUsers: '/system/users',
+  systemLogs: '/system/logs'
 };

@@ -24,5 +24,11 @@ export const menuConfig = [
     label: 'Borrows',
     path: ROUTES.borrows,
     description: 'Borrow, return and overdue flows'
+  },
+  {
+    key: 'system',
+    label: 'System',
+    path: ROUTES.systemDashboard,
+    description: 'Roles, users and audit operations'
   }
 ];

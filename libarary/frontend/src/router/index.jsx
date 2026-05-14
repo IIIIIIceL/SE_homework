@@ -17,6 +17,10 @@ import BorrowList from '../pages/Borrows/List';
 import BorrowDetail from '../pages/Borrows/Detail';
 import BorrowBook from '../pages/Borrows/Borrow';
 import Overdue from '../pages/Borrows/Overdue';
+import SystemDashboard from '../pages/System/Dashboard';
+import RolesPage from '../pages/System/Roles';
+import UsersPage from '../pages/System/Users';
+import LogsPage from '../pages/System/Logs';
 
 function DashboardHome() {
   return (
@@ -54,7 +58,11 @@ const router = createBrowserRouter([
           { path: ROUTES.borrows.slice(1), element: <BorrowList /> },
           { path: ROUTES.borrowBook.slice(1), element: <BorrowBook /> },
           { path: ROUTES.overdueBorrows.slice(1), element: <Overdue /> },
-          { path: 'borrows/:id', element: <BorrowDetail /> }
+          { path: 'borrows/:id', element: <BorrowDetail /> },
+          { path: ROUTES.systemDashboard.slice(1), element: <SystemDashboard /> },
+          { path: ROUTES.systemRoles.slice(1), element: <RolesPage /> },
+          { path: ROUTES.systemUsers.slice(1), element: <UsersPage /> },
+          { path: ROUTES.systemLogs.slice(1), element: <LogsPage /> }
         ]
       }
     ]
