@@ -227,18 +227,12 @@ async function returnBook(borrowId, data, operatorId) {
   const calculatedFine = calculateFine(borrow.dueDate);
   const fineAmount = input.fineAmount >= 0 ? input.fineAmount : calculatedFine;
 
-  // 更新借阅记录状态
-  let newStatus = 'RETURNED';
-  if (calculatedFine > 0) {
-    newStatus = 'OVERDUE'; // 如果超期则标记为超期（已归还但超期）
-  }
-
   // 事务：更新借阅记录 + 恢复图书副本数
   const returnRecord = await prisma.$transaction(async (tx) => {
     const updated = await tx.borrowRecord.update({
       where: { id },
       data: {
-        status: newStatus,
+        status: 'RETURNED',
         returnDate: new Date(),
         operatorReturnId: operatorId || null,
         fineAmount,
