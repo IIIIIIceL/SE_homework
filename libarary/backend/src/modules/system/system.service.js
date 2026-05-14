@@ -1,5 +1,6 @@
 const { prisma } = require('../../config/database');
 const { roleRepository, userRepository, operationLogRepository } = require('./system.repository');
+const { hashPassword } = require('../../common/utils/password');
 const {
   normalizeRoleInput,
   normalizeRoleQuery,
@@ -156,7 +157,10 @@ async function createUser(data) {
     throw createError('ROLE_NOT_FOUND', '角色不存在');
   }
 
-  const user = await userRepository.create(input);
+  const user = await userRepository.create({
+    ...input,
+    passwordHash: hashPassword(input.passwordHash)
+  });
   return toUserVO(user);
 }
 
@@ -377,7 +381,7 @@ async function changePassword(userId, data) {
   //   throw createError('WRONG_PASSWORD', '旧密码错误');
   // }
 
-  const updated = await userRepository.updatePassword(id, input.newPassword);
+  const updated = await userRepository.updatePassword(id, hashPassword(input.newPassword));
   return toUserVO(updated);
 }
 
@@ -396,7 +400,7 @@ async function resetPassword(userId, newPassword) {
     throw createError('USER_NOT_FOUND', '用户不存在');
   }
 
-  const updated = await userRepository.updatePassword(id, newPassword);
+  const updated = await userRepository.updatePassword(id, hashPassword(newPassword));
   return toUserVO(updated);
 }
 

@@ -27,8 +27,7 @@ function normalizeUserInput(data = {}) {
     passwordHash: data.passwordHash || null,
     fullName: data.fullName || null,
     roleId: data.roleId ? Number(data.roleId) : null,
-    status: data.status || 'ACTIVE',
-    remark: data.remark || null
+    status: data.status || 'ACTIVE'
   };
 }
 
@@ -36,8 +35,7 @@ function normalizeUserUpdate(data = {}) {
   return {
     fullName: data.fullName || undefined,
     roleId: data.roleId ? Number(data.roleId) : undefined,
-    status: data.status || undefined,
-    remark: data.remark || undefined
+    status: data.status || undefined
   };
 }
 

@@ -28,8 +28,11 @@ const {
   getUserLogs,
   recordLog
 } = require('./system.controller');
+const { authMiddleware, requireRole } = require('../../common/middleware/authMiddleware');
 
 const router = express.Router();
+
+router.use(authMiddleware, requireRole('ADMIN'));
 
 // ==================== 角色管理路由 ====================
 router.get('/roles', getRoles);
