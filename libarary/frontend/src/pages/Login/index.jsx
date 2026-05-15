@@ -45,6 +45,7 @@ export default function Login() {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>图书管理系统</h1>
+        <p className={styles.subtitle}>欢迎登录图书馆管理平台</p>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
             <label htmlFor="username">用户名</label>

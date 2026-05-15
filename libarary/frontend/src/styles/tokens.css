@@ -1,13 +1,15 @@
 :root {
   --font-body: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --color-bg: #f4f7fb;
+  --color-bg: #f0f8f6;
   --color-surface: #ffffff;
-  --color-border: #d8e0ea;
-  --color-text: #17324d;
-  --color-text-muted: #55708a;
-  --color-primary: #1f6feb;
-  --color-primary-strong: #195cc0;
-  --color-danger: #d14343;
-  --shadow-card: 0 18px 40px rgba(19, 44, 74, 0.08);
+  --color-border: #d4e8e4;
+  --color-text: #1a3a36;
+  --color-text-muted: #4a7a75;
+  --color-primary: #00a871;
+  --color-primary-strong: #008c5a;
+  --color-danger: #d9534f;
+  --shadow-card: 0 18px 40px rgba(0, 121, 89, 0.08);
   --radius-md: 14px;
+  --color-accent: #4fb3a3;
+  --color-accent-light: #e0f5f1;
 }
