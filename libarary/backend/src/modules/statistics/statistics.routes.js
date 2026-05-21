@@ -5,8 +5,11 @@ const {
   handlePopularBooks,
   handleInventory
 } = require('./statistics.controller');
+const { authMiddleware, requireRole } = require('../../common/middleware/authMiddleware');
 
 const router = express.Router();
+
+router.use(authMiddleware, requireRole('ADMIN'));
 
 // 借阅记录查询（按时间段）
 router.get('/borrow-records', handleBorrowRecords);

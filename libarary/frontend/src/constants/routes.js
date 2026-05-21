@@ -13,5 +13,9 @@ export const ROUTES = {
   systemDashboard: '/system',
   systemRoles: '/system/roles',
   systemUsers: '/system/users',
-  systemLogs: '/system/logs'
+  systemLogs: '/system/logs',
+  readerHome: '/reader',
+  readerBooks: '/reader/books',
+  readerBorrows: '/reader/borrows',
+  readerProfile: '/reader/profile'
 };

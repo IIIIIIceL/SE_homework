@@ -157,9 +157,44 @@ async function createUser(data) {
     throw createError('ROLE_NOT_FOUND', '角色不存在');
   }
 
-  const user = await userRepository.create({
-    ...input,
-    passwordHash: hashPassword(input.passwordHash)
+  const user = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        ...input,
+        passwordHash: hashPassword(input.passwordHash)
+      },
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        }
+      }
+    });
+
+    if (role.name === 'LIBRARIAN') {
+      const existingReader = await tx.reader.findUnique({ where: { readerNo: createdUser.username } });
+      if (existingReader && !existingReader.userId) {
+        await tx.reader.update({
+          where: { id: existingReader.id },
+          data: { userId: createdUser.id, name: createdUser.fullName }
+        });
+      } else if (!existingReader) {
+        await tx.reader.create({
+          data: {
+            userId: createdUser.id,
+            readerNo: createdUser.username,
+            name: createdUser.fullName,
+            status: 'ACTIVE',
+            maxBorrowCount: 5
+          }
+        });
+      }
+    }
+
+    return createdUser;
   });
   return toUserVO(user);
 }
@@ -194,7 +229,46 @@ async function updateUser(userId, data) {
   // 移除undefined的字段
   Object.keys(input).forEach(key => input[key] === undefined && delete input[key]);
 
-  const updated = await userRepository.update(id, input);
+  const updated = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.update({
+      where: { id },
+      data: input,
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        }
+      }
+    });
+
+    if (updatedUser.role?.name === 'LIBRARIAN') {
+      const existingReader = await tx.reader.findUnique({ where: { userId: updatedUser.id } });
+      if (!existingReader) {
+        const readerByNo = await tx.reader.findUnique({ where: { readerNo: updatedUser.username } });
+        if (readerByNo && !readerByNo.userId) {
+          await tx.reader.update({
+            where: { id: readerByNo.id },
+            data: { userId: updatedUser.id, name: updatedUser.fullName }
+          });
+        } else if (!readerByNo) {
+          await tx.reader.create({
+            data: {
+              userId: updatedUser.id,
+              readerNo: updatedUser.username,
+              name: updatedUser.fullName,
+              status: 'ACTIVE',
+              maxBorrowCount: 5
+            }
+          });
+        }
+      }
+    }
+
+    return updatedUser;
+  });
   return toUserVO(updated);
 }
 

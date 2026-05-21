@@ -48,7 +48,7 @@ async function login(data) {
     id: user.id,
     username: user.username,
     fullName: user.fullName,
-    role: user.role?.name || 'user',
+    role: user.role?.name || 'LIBRARIAN',
     status: user.status
   });
 
@@ -104,7 +104,7 @@ async function register(data) {
   if (!roleId) {
     // 使用默认角色（假设有一个id=1的default role）
     const defaultRole = await prisma.role.findFirst({
-      where: { name: 'user' }
+      where: { name: 'LIBRARIAN' }
     });
     roleId = defaultRole?.id || 1;
   } else {
@@ -118,12 +118,41 @@ async function register(data) {
 
   // 创建用户
   const hashedPassword = hashPassword(input.password);
-  const user = await authRepository.create({
-    username: input.username,
-    passwordHash: hashedPassword,
-    fullName: input.fullName,
-    roleId,
-    status: 'ACTIVE'
+  const user = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        username: input.username,
+        passwordHash: hashedPassword,
+        fullName: input.fullName,
+        roleId,
+        status: 'ACTIVE'
+      },
+      include: {
+        role: true
+      }
+    });
+
+    if (createdUser.role?.name === 'LIBRARIAN') {
+      const existingReader = await tx.reader.findUnique({ where: { readerNo: createdUser.username } });
+      if (existingReader && !existingReader.userId) {
+        await tx.reader.update({
+          where: { id: existingReader.id },
+          data: { userId: createdUser.id, name: createdUser.fullName }
+        });
+      } else if (!existingReader) {
+        await tx.reader.create({
+          data: {
+            userId: createdUser.id,
+            readerNo: createdUser.username,
+            name: createdUser.fullName,
+            status: 'ACTIVE',
+            maxBorrowCount: 5
+          }
+        });
+      }
+    }
+
+    return createdUser;
   });
 
   // 生成令牌
@@ -131,7 +160,7 @@ async function register(data) {
     id: user.id,
     username: user.username,
     fullName: user.fullName,
-    role: user.role?.name || 'user',
+    role: user.role?.name || 'LIBRARIAN',
     status: user.status
   });
 

@@ -4,56 +4,56 @@ const { hashPassword } = require('../src/common/utils/password');
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminPasswordHash = hashPassword('123456');
+  const defaultPasswordHash = hashPassword('123456');
 
   const adminRole = await prisma.role.upsert({
     where: { name: 'ADMIN' },
     update: {},
     create: {
       name: 'ADMIN',
-      description: '系统管理员'
+      description: 'System administrator'
     }
   });
 
-  await prisma.role.upsert({
+  const librarianRole = await prisma.role.upsert({
     where: { name: 'LIBRARIAN' },
     update: {},
     create: {
       name: 'LIBRARIAN',
-      description: '图书管理员'
+      description: 'Reader account'
     }
   });
 
   await prisma.user.upsert({
     where: { username: 'admin' },
     update: {
-      passwordHash: adminPasswordHash,
+      passwordHash: defaultPasswordHash,
       roleId: adminRole.id,
       status: 'ACTIVE'
     },
     create: {
       username: 'admin',
-      passwordHash: adminPasswordHash,
-      fullName: '系统管理员',
+      passwordHash: defaultPasswordHash,
+      fullName: 'System Administrator',
       roleId: adminRole.id,
       status: 'ACTIVE'
     }
   });
 
   let category = await prisma.category.findFirst({
-    where: { name: '软件工程', parentId: null }
+    where: { name: 'Software Engineering', parentId: null }
   });
 
   if (!category) {
     category = await prisma.category.create({
-      data: { name: '软件工程' }
+      data: { name: 'Software Engineering' }
     });
   }
 
   const publisher = await prisma.publisher.upsert({
-    where: { name: '高等教育出版社' },
+    where: { name: 'Higher Education Press' },
     update: {},
-    create: { name: '高等教育出版社' }
+    create: { name: 'Higher Education Press' }
   });
 
   await prisma.book.upsert({
@@ -61,8 +61,8 @@ async function main() {
     update: {},
     create: {
       isbn: '9787040000001',
-      title: '软件工程导论',
-      author: '张三',
+      title: 'Introduction to Software Engineering',
+      author: 'Zhang San',
       categoryId: category.id,
       publisherId: publisher.id,
       totalCopies: 10,
@@ -71,18 +71,40 @@ async function main() {
     }
   });
 
-  await prisma.reader.upsert({
+  const reader = await prisma.reader.upsert({
     where: { readerNo: 'R20260001' },
     update: {},
     create: {
       readerNo: 'R20260001',
-      name: '测试读者',
+      name: 'Test Reader',
       maxBorrowCount: 5,
       status: 'ACTIVE'
     }
   });
 
-  console.log('Seed completed. Default login: admin / 123456');
+  const readerUser = await prisma.user.upsert({
+    where: { username: reader.readerNo },
+    update: {
+      passwordHash: defaultPasswordHash,
+      roleId: librarianRole.id,
+      fullName: reader.name,
+      status: 'ACTIVE'
+    },
+    create: {
+      username: reader.readerNo,
+      passwordHash: defaultPasswordHash,
+      fullName: reader.name,
+      roleId: librarianRole.id,
+      status: 'ACTIVE'
+    }
+  });
+
+  await prisma.reader.update({
+    where: { id: reader.id },
+    data: { userId: readerUser.id }
+  });
+
+  console.log('Seed completed. Admin: admin / 123456, Reader: R20260001 / 123456');
 }
 
 main()

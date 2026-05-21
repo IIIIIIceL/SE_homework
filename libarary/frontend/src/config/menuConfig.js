@@ -1,6 +1,6 @@
-﻿import { ROUTES } from '../constants/routes';
+import { ROUTES } from '../constants/routes';
 
-export const menuConfig = [
+export const adminMenuConfig = [
   {
     key: 'dashboard',
     label: '首页',
@@ -32,3 +32,32 @@ export const menuConfig = [
     description: '角色、用户与操作日志'
   }
 ];
+
+export const readerMenuConfig = [
+  {
+    key: 'reader-home',
+    label: '我的首页',
+    path: ROUTES.readerHome,
+    description: '查看借阅状态与到期提醒'
+  },
+  {
+    key: 'reader-books',
+    label: '图书检索',
+    path: ROUTES.readerBooks,
+    description: '查询馆藏图书与可借数量'
+  },
+  {
+    key: 'reader-borrows',
+    label: '我的借阅',
+    path: ROUTES.readerBorrows,
+    description: '查看个人借阅历史与续借'
+  },
+  {
+    key: 'reader-profile',
+    label: '个人资料',
+    path: ROUTES.readerProfile,
+    description: '查看读者档案与联系方式'
+  }
+];
+
+export const menuConfig = adminMenuConfig;
