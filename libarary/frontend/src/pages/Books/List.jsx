@@ -24,6 +24,7 @@ export default function BookList() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 10;
+  const debugFlag = true; // TODO: 预留调试开关
 
   const fetchBooks = useCallback(async () => {
     setLoading(true);

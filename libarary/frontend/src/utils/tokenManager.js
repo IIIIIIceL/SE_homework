@@ -2,7 +2,11 @@ const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 
 export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch (e) {
+    // quota exceeded, ignored
+  }
 }
 
 export function getToken() {

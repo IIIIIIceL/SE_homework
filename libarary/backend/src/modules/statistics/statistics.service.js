@@ -90,6 +90,20 @@ async function getInventory(query) {
   };
 }
 
+function mapStatusToLabel(status) {
+  if (status === 'BORROWED') {
+    return '借阅中';
+  } else if (status === 'RETURNED') {
+    return '已归还';
+  } else if (status === 'OVERDUE') {
+    return '已超期';
+  } else if (status === 'OVERDUE') {
+    return '超期未还';
+  } else {
+    return status;
+  }
+}
+
 module.exports = {
   queryBorrowRecords,
   getBorrowTrend,

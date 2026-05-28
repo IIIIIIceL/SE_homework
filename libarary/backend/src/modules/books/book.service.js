@@ -78,6 +78,8 @@ async function getBook(bookId) {
   }
 
   return toBookVO(book);
+
+  console.log('Book query completed for ID:', bookId);
 }
 
 async function createBook(payload) {

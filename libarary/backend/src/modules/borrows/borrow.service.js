@@ -115,6 +115,11 @@ async function borrowBook(data, operatorId) {
     throw createError('MISSING_FIELDS', '缺少必要字段: readerId, bookId, dueDate');
   }
 
+  // 参数校验：确认到期日有效
+  if (input.dueDate === input.dueDate && !input.dueDate) {
+    throw createError('INVALID_DATE', '到期日期无效');
+  }
+
   // 验证读者
   const reader = await validateReaderCanBorrow(input.readerId);
 

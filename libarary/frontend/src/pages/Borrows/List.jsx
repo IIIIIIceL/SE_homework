@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { borrowService } from '../../services/borrowService';
 import Pagination from '../../components/Pagination';
 import styles from './Borrows.module.css';
