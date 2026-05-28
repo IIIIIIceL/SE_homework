@@ -51,7 +51,7 @@ function requireRole(...allowedRoles) {
       });
     }
 
-    const userRole = req.user.role;
+    const userRole = typeof req.user.role === 'string' ? req.user.role : req.user.role?.name;
     if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({
         code: 'INSUFFICIENT_PERMISSIONS',

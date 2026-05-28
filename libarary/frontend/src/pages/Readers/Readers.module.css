@@ -170,6 +170,20 @@
   margin: 0 0 14px;
 }
 
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
 .fieldError {
   display: inline-block;
   margin-top: 6px;
@@ -185,7 +199,8 @@
 
 @media (max-width: 960px) {
   .filterBar,
-  .detailGrid {
+  .detailGrid,
+  .formGrid {
     grid-template-columns: 1fr;
   }
 }

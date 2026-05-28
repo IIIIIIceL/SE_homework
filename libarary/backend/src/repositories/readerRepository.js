@@ -38,6 +38,22 @@ const readerRepository = {
     return prisma.reader.findUnique({ where: { readerNo } });
   },
 
+  findByUserId(userId) {
+    return prisma.reader.findUnique({ where: { userId: Number(userId) } });
+  },
+
+  findByAccountUsername(username) {
+    return prisma.reader.findFirst({
+      where: {
+        OR: [
+          { readerNo: username },
+          { phone: username },
+          { email: username }
+        ]
+      }
+    });
+  },
+
   update(id, data) {
     return prisma.reader.update({ where: { id }, data });
   },

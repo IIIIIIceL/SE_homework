@@ -76,6 +76,38 @@ class ReaderService {
     return readerRepository.findById(Number(id));
   }
 
+  async getReaderByAccount(user) {
+    if (user?.id) {
+      const linkedReader = await readerRepository.findByUserId(user.id);
+      if (linkedReader) return linkedReader;
+    }
+    if (!user?.username) return null;
+    const matchedReader = await readerRepository.findByAccountUsername(String(user.username));
+    if (matchedReader) {
+      if (user?.id && !matchedReader.userId) {
+        return readerRepository.update(matchedReader.id, { userId: Number(user.id) });
+      }
+      return matchedReader;
+    }
+
+    const roleName = typeof user.role === 'string' ? user.role : user.role?.name;
+    if (roleName !== 'LIBRARIAN' || !user?.id) return null;
+
+    let readerNo = String(user.username).trim();
+    const existingReaderNo = await readerRepository.findByReaderNo(readerNo);
+    if (existingReaderNo) {
+      readerNo = `U${user.id}`;
+    }
+
+    return readerRepository.create({
+      userId: Number(user.id),
+      readerNo,
+      name: user.fullName || user.username,
+      maxBorrowCount: 5,
+      status: 'ACTIVE'
+    });
+  }
+
   async getAllReaders(query = {}) {
     const page = normalizePage(query.page, 1);
     const pageSize = normalizePage(query.pageSize, 10);
@@ -111,6 +143,22 @@ class ReaderService {
     }
 
     return readerRepository.update(readerId, filteredData);
+  }
+
+  async updateOwnContact(user, updateData) {
+    const reader = await this.getReaderByAccount(user);
+    if (!reader) return null;
+
+    const payload = validateReaderPayload(updateData, 'update');
+    const contactData = {};
+
+    for (const field of ['phone', 'email']) {
+      if (payload[field] !== undefined) {
+        contactData[field] = payload[field] ? String(payload[field]).trim() : null;
+      }
+    }
+
+    return readerRepository.update(reader.id, contactData);
   }
 
   async deleteReader(id) {

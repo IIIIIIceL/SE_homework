@@ -2,6 +2,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
+import { getHomeRouteForUser } from '../../utils/roles';
 import styles from './Login.module.css';
 
 export default function Login() {
@@ -32,8 +33,8 @@ export default function Login() {
 
     setSubmitting(true);
     try {
-      await login(username.trim(), password);
-      navigate(redirect, { replace: true });
+      const result = await login(username.trim(), password);
+      navigate(redirect === ROUTES.root ? getHomeRouteForUser(result.user) : redirect, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || '登录失败，请检查用户名和密码。');
     } finally {
@@ -45,6 +46,7 @@ export default function Login() {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>图书管理系统</h1>
+        <p className={styles.subtitle}>欢迎登录图书馆管理平台</p>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
             <label htmlFor="username">用户名</label>

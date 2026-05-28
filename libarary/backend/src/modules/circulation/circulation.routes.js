@@ -1,7 +1,10 @@
 const express = require('express');
 const { getBorrowRecords, getBorrowRecordById } = require('./circulation.controller');
+const { authMiddleware, requireRole } = require('../../common/middleware/authMiddleware');
 
 const router = express.Router();
+
+router.use(authMiddleware, requireRole('ADMIN'));
 
 /**
  * @route GET /api/circulation/borrow-records

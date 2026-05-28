@@ -400,6 +400,24 @@ async function listBorrows(query) {
   };
 }
 
+async function listBorrowsForReader(readerId, query = {}) {
+  const params = normalizeBorrowQuery({ ...query, readerId });
+  const [items, total] = await Promise.all([
+    borrowRepository.list(params),
+    borrowRepository.count(params)
+  ]);
+
+  return {
+    data: toBorrowListVO(items),
+    pagination: {
+      page: params.page,
+      pageSize: params.pageSize,
+      total,
+      totalPages: Math.ceil(total / params.pageSize)
+    }
+  };
+}
+
 /**
  * 获取单条借阅记录
  */
@@ -415,6 +433,15 @@ async function getBorrow(borrowId) {
   }
 
   return toBorrowVO(record);
+}
+
+async function getBorrowForReader(borrowId, readerId) {
+  const record = await getBorrow(borrowId);
+  if (record.reader?.id !== readerId) {
+    throw createError('BORROW_NOT_FOUND', '借阅记录不存在');
+  }
+
+  return record;
 }
 
 /**
@@ -454,7 +481,9 @@ module.exports = {
   returnBook,
   renewBook,
   listBorrows,
+  listBorrowsForReader,
   getBorrow,
+  getBorrowForReader,
   getOverdueRecords,
   getReaderBorrowCount
 };

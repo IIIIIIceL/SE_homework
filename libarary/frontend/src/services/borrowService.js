@@ -11,6 +11,26 @@ export const borrowService = {
     return data.data;
   },
 
+  async getMyBorrows(params = {}) {
+    const { data } = await http.get('/api/borrows/my', { params });
+    return data;
+  },
+
+  async getMyBorrowDetail(borrowId) {
+    const { data } = await http.get(`/api/borrows/my/${borrowId}`);
+    return data.data;
+  },
+
+  async borrowMyBook(bookId, data = {}) {
+    const { data: res } = await http.post('/api/borrows/my', { ...data, bookId });
+    return res.data;
+  },
+
+  async returnMyBook(borrowId, data = {}) {
+    const { data: res } = await http.post(`/api/borrows/my/${borrowId}/return`, data);
+    return res.data;
+  },
+
   async borrowBook(data) {
     const { data: res } = await http.post('/api/borrows', data);
     return res.data;

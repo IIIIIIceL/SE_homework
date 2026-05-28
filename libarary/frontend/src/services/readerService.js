@@ -18,6 +18,16 @@ export const readerService = {
     return data;
   },
 
+  async getMyProfile() {
+    const { data } = await http.get('/api/readers/me');
+    return data;
+  },
+
+  async updateMyContact(payload) {
+    const { data } = await http.put('/api/readers/me/contact', payload);
+    return data;
+  },
+
   async createReader(payload) {
     const { data } = await http.post('/api/readers', payload);
     return data;
@@ -35,6 +45,11 @@ export const readerService = {
 
   async getReaderHistory(readerId) {
     const { data } = await http.get(`/api/readers/${readerId}/history`);
+    return Array.isArray(data) ? data : [];
+  },
+
+  async getMyHistory() {
+    const { data } = await http.get('/api/readers/me/history');
     return Array.isArray(data) ? data : [];
   }
 };
