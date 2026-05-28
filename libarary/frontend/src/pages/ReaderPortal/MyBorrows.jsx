@@ -85,7 +85,10 @@ export default function MyBorrows() {
         </select>
       </form>
       {error && <div className={styles.error}>{error}</div>}
-      {loading ? <div className={styles.loading}>正在加载...</div> : records.length === 0 ? <div className={styles.empty}>暂无借阅数据</div> : (
+      {(() => {
+        if (loading) return <div className={styles.loading}>正在加载...</div>;
+        if (records.length === 0) return <div className={styles.empty}>暂无借阅数据</div>;
+        return (
         <table className={styles.table}>
           <thead><tr><th>借阅编号</th><th>图书</th><th>借阅日期</th><th>应还日期</th><th>归还日期</th><th>续借次数</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>{records.map((record) => {
@@ -112,7 +115,8 @@ export default function MyBorrows() {
             );
           })}</tbody>
         </table>
-      )}
+        );
+      })()}
       <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
     </div>
   );
