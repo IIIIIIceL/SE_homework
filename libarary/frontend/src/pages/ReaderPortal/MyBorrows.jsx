@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
+import Toast from '../../components/Toast';
 import { borrowService } from '../../services/borrowService';
 import styles from '../Borrows/Borrows.module.css';
 
@@ -20,6 +22,9 @@ export default function MyBorrows() {
   const [loading, setLoading] = useState(true);
   const [operatingId, setOperatingId] = useState(null);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [renewModal, setRenewModal] = useState(null);
   const pageSize = 10;
 
   const fetchRecords = useCallback(async () => {
@@ -42,32 +47,49 @@ export default function MyBorrows() {
 
   useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
-  async function handleRenew(record) {
+  function showToast(message, type = 'success') {
+    setToast({ message, type });
+  }
+
+  function handleRenewClick(record) {
     const currentDue = record.dueDate ? new Date(record.dueDate) : new Date();
     currentDue.setDate(currentDue.getDate() + 30);
-    const dueDate = window.prompt('请输入新的到期日期（YYYY-MM-DD）：', currentDue.toISOString().slice(0, 10));
+    setRenewModal({ record, defaultValue: currentDue.toISOString().slice(0, 10) });
+  }
+
+  async function handleRenewConfirm(dueDate) {
     if (!dueDate) return;
+    const record = renewModal.record;
+    setRenewModal(null);
     setOperatingId(record.id);
     try {
       await borrowService.renewBook(record.id, { newDueDate: dueDate });
-      window.alert('续借成功');
+      showToast('续借成功');
       fetchRecords();
     } catch (requestError) {
-      window.alert(requestError.response?.data?.message || '续借失败');
+      showToast(requestError.response?.data?.message || '续借失败', 'error');
     } finally {
       setOperatingId(null);
     }
   }
 
-  async function handleReturn(record) {
-    if (!window.confirm(`确认归还《${record.book?.title || '这本书'}》吗？`)) return;
+  function handleReturnClick(record) {
+    setConfirmModal({
+      title: '确认归还',
+      message: `确认归还《${record.book?.title || '这本书'}》吗？`,
+      onConfirm: () => executeReturn(record)
+    });
+  }
+
+  async function executeReturn(record) {
+    setConfirmModal(null);
     setOperatingId(record.id);
     try {
       await borrowService.returnMyBook(record.id);
-      window.alert('归还成功');
+      showToast('归还成功');
       fetchRecords();
     } catch (requestError) {
-      window.alert(requestError.response?.data?.message || '归还失败');
+      showToast(requestError.response?.data?.message || '归还失败', 'error');
     } finally {
       setOperatingId(null);
     }
@@ -106,8 +128,8 @@ export default function MyBorrows() {
                 <td className={styles.actions}>
                   {canOperate ? (
                     <>
-                      <button className={styles.linkBtn} onClick={() => handleRenew(record)} disabled={disabled}>续借</button>
-                      <button className={styles.linkBtn} onClick={() => handleReturn(record)} disabled={disabled}>归还</button>
+                      <button className={styles.linkBtn} onClick={() => handleRenewClick(record)} disabled={disabled}>续借</button>
+                      <button className={styles.linkBtn} onClick={() => handleReturnClick(record)} disabled={disabled}>归还</button>
                     </>
                   ) : '-'}
                 </td>
@@ -118,6 +140,29 @@ export default function MyBorrows() {
         );
       })()}
       <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      <Modal
+        visible={!!confirmModal}
+        title={confirmModal?.title}
+        onConfirm={confirmModal?.onConfirm}
+        onCancel={() => setConfirmModal(null)}
+      >
+        {confirmModal?.message}
+      </Modal>
+
+      <Modal
+        visible={!!renewModal}
+        title="续借"
+        prompt
+        defaultValue={renewModal?.defaultValue || ''}
+        confirmText="确认续借"
+        onConfirm={handleRenewConfirm}
+        onCancel={() => setRenewModal(null)}
+      >
+        请输入新的到期日期（YYYY-MM-DD）：
+      </Modal>
     </div>
   );
 }
