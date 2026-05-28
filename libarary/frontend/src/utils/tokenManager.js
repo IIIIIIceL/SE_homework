@@ -1,29 +1,33 @@
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 
+function getStorage() {
+  return window.sessionStorage;
+}
+
 export function setToken(token) {
   try {
-    localStorage.setItem(TOKEN_KEY, token);
+    getStorage().setItem(TOKEN_KEY, token);
   } catch (e) {
     // quota exceeded, ignored
   }
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return getStorage().getItem(TOKEN_KEY);
 }
 
 export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+  getStorage().removeItem(TOKEN_KEY);
+  getStorage().removeItem(USER_KEY);
 }
 
 export function setUser(user) {
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  getStorage().setItem(USER_KEY, JSON.stringify(user));
 }
 
 export function getUser() {
-  const raw = localStorage.getItem(USER_KEY);
+  const raw = getStorage().getItem(USER_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -33,5 +37,5 @@ export function getUser() {
 }
 
 export function clearUser() {
-  localStorage.removeItem(USER_KEY);
+  getStorage().removeItem(USER_KEY);
 }
