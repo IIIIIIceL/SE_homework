@@ -6,6 +6,7 @@ const STATUS_LABELS = { ACTIVE: '正常', DISABLED: '停用', DELETED: '已删�
 export default function UserForm({ mode = 'create', initialData, roles, onSubmit, onCancel, submitting }) {
   const [form, setForm] = useState({ username: '', passwordHash: '', fullName: '', roleId: '', status: 'ACTIVE' });
   const [errors, setErrors] = useState({});
+  const submitText = submitting ? '保存中...' : mode === 'create' ? '创建用户' : '保存用户';
 
   useEffect(() => {
     setForm(initialData ? { username: initialData.username || '', passwordHash: '', fullName: initialData.fullName || '', roleId: initialData.role?.id || '', status: initialData.status || 'ACTIVE' } : { username: '', passwordHash: '', fullName: '', roleId: roles[0]?.id || '', status: 'ACTIVE' });
@@ -37,7 +38,7 @@ export default function UserForm({ mode = 'create', initialData, roles, onSubmit
         <div className={styles.field}><label>角色</label><select className={styles.select} value={form.roleId} onChange={(event) => update('roleId', event.target.value)}><option value="">请选择角色</option>{roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select>{errors.roleId ? <span className={styles.fieldError}>{errors.roleId}</span> : null}</div>
         <div className={styles.field}><label>状态</label><select className={styles.select} value={form.status} onChange={(event) => update('status', event.target.value)}>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
       </div>
-      <div className={styles.actions}><button type="button" className={styles.btn} onClick={onCancel}>取消</button><button type="submit" className={styles.primaryBtn} disabled={submitting}>{submitting ? '保存中...' : mode === 'create' ? '创建用户' : '保存用户'}</button></div>
+      <div className={styles.actions}><button type="button" className={styles.btn} onClick={onCancel}>取消</button><button type="submit" className={styles.primaryBtn} disabled={submitting}>{submitText}</button></div>
     </form>
   );
 }
