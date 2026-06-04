@@ -2,6 +2,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { bookService } from '../../services/bookService';
 import Pagination from '../../components/Pagination';
+import Modal from '../../components/Modal';
+import Toast from '../../components/Toast';
 import styles from './Books.module.css';
 
 const STATUS_MAP = {
@@ -47,19 +49,35 @@ export default function BookList() {
 
   useEffect(() => { fetchBooks(); }, [fetchBooks]);
 
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [operatingId, setOperatingId] = useState(null);
+
   function handleSearch(e) {
     e.preventDefault();
     setPage(1);
     fetchBooks();
   }
 
-  async function handleDelete(bookId) {
-    if (!window.confirm('确定删除这本图书吗？')) return;
+  function handleDelete(bookId) {
+    setConfirmModal({
+      title: '确认删除',
+      message: '确定删除这本图书吗？',
+      onConfirm: () => executeDelete(bookId)
+    });
+  }
+
+  async function executeDelete(bookId) {
+    setConfirmModal(null);
+    setOperatingId(bookId);
     try {
       await bookService.deleteBook(bookId);
+      setToast({ message: '删除成功' });
       fetchBooks();
     } catch (err) {
-      window.alert(err.response?.data?.message || '删除失败');
+      setToast({ message: err.response?.data?.message || '删除失败', type: 'error' });
+    } finally {
+      setOperatingId(null);
     }
   }
 
@@ -67,9 +85,10 @@ export default function BookList() {
     const newStatus = currentStatus === 'AVAILABLE' ? 'OFF_SHELF' : 'AVAILABLE';
     try {
       await bookService.updateBookStatus(bookId, newStatus);
+      setToast({ message: '状态修改成功' });
       fetchBooks();
     } catch (err) {
-      window.alert(err.response?.data?.message || '状态修改失败');
+      setToast({ message: err.response?.data?.message || '状态修改失败', type: 'error' });
     }
   }
 
@@ -137,6 +156,16 @@ export default function BookList() {
       )}
 
       <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
+      {toast && <Toast message={toast.message} type={toast.type || 'success'} onClose={() => setToast(null)} />}
+
+      <Modal
+        visible={!!confirmModal}
+        title={confirmModal?.title}
+        onConfirm={confirmModal?.onConfirm}
+        onCancel={() => setConfirmModal(null)}
+      >
+        {confirmModal?.message}
+      </Modal>
     </div>
   );
 }
